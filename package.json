@@ -8,6 +8,8 @@
     "deploy": "node scripts/deploy-bounty.mjs"
   },
   "dependencies": {
+    "ethers": "^6.16.0",
+    "genlayer-js": "^0.20.3",
     "viem": "^2.0.0"
   }
 }
