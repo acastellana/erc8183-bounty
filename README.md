@@ -28,7 +28,7 @@ All through the hooks system and/or custom evaluator contracts — **without mod
 
 ## Prize
 
-**50,000 PEN** held in ERC-8183 job escrow on Base Sepolia.
+**5,000 USDC** held in ERC-8183 job escrow on Base Sepolia.
 
 ## Evaluation Criteria
 
@@ -47,10 +47,11 @@ All six must pass for `complete()` to be called. The evaluator aggregates two Ge
 
 | Contract | Network | Address |
 |----------|---------|---------|
-| AgenticCommerce | Base Sepolia | [`0x45f0…0d21`](https://sepolia.basescan.org/address/0x45f0a7987fa2e83aa20425863482d9b2a3560d21) |
-| GenLayerEvaluator (v2, dual-signal) | Base Sepolia | [`0x2c5c…53ad`](https://sepolia.basescan.org/address/0x2c5c7d5b78ffb1100abb5d560d867eb71e2753ad) |
-| CourtAwareHook | Base Sepolia | [`0xb0cc…5387`](https://sepolia.basescan.org/address/0xb0ccec14e35c5c14a497b67438900d9e27d45387) |
-| MockPEN (prize) | Base Sepolia | [`0x08bc…9719`](https://sepolia.basescan.org/address/0x08bc87f6511913caa4e127c5e4e91618a37a9719) |
+| AgenticCommerce | Base Sepolia | [`0x160b…abb1`](https://sepolia.basescan.org/address/0x160bc3cb45db987d957d6fee942a6ad7e0e2abb1) |
+| GenLayerEvaluator (v2, dual-signal) | Base Sepolia | [`0xd0da…1f7f`](https://sepolia.basescan.org/address/0xd0da34b858137c4f27185c5a3b4056b91dd61f7f) |
+| CourtAwareHook | Base Sepolia | [`0x1032…09a5`](https://sepolia.basescan.org/address/0x10320f3a68efec5027c03d766ddfa81b19e009a5) |
+| MockUSDC (prize) | Base Sepolia | [`0x2a2f…4d4e`](https://sepolia.basescan.org/address/0x2a2f8da3bf952f31751191dfb9a076701bed4d4e) |
+| InternetCourtFactory | Base Sepolia | [`0xd533…9Dda`](https://sepolia.basescan.org/address/0xd533cB0B52E85b3F506b6f0c28b8f6bc4E449Dda) |
 | ProposalEvaluator (Signal 1) | GenLayer Studionet | Deployed per submission |
 | EndorsementVerifier (Signal 2) | GenLayer Studionet | Deployed per submission |
 
@@ -92,16 +93,20 @@ BASE SEPOLIA                                    GENLAYER STUDIONET
 
 ```
 ├── contracts/
-│   └── ProposalEvaluator.py     # GenLayer AI jury contract
+│   ├── ProposalEvaluator.py     # GenLayer AI jury contract
+│   └── EndorsementVerifier.py   # Forum endorsement check
 ├── sol/src/
 │   ├── IERC8183.sol              # ERC-8183 interface + IACPHook
 │   ├── AgenticCommerce.sol       # ERC-8183 implementation
 │   ├── GenLayerEvaluator.sol     # Evaluator bridging to GenLayer
-│   └── CourtAwareHook.sol        # Reference hook for the bounty
+│   ├── CourtAwareHook.sol        # Reference hook for the bounty
+│   └── MockUSDC.sol              # 6-decimal test token
 ├── scripts/
 │   ├── deploy-bounty.mjs         # Deploy all contracts + create job
 │   ├── setup-job.mjs             # Complete job setup (budget, tokens)
-│   └── test-bounty.mjs           # 35-check test suite
+│   ├── test-bounty.mjs           # 35-check test suite
+│   ├── test-lifecycle.mjs        # 42-check lifecycle test
+│   └── test-dual-signal.mjs      # Dual-signal flow test
 ├── artifacts/
 │   └── bounty-deployment.json    # Deployment addresses and metadata
 └── index.html                     # Bounty page

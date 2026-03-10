@@ -54,7 +54,7 @@ const clientW = createWalletClient({ chain: baseSepolia, transport, account: cli
 const providerW = createWalletClient({ chain: baseSepolia, transport, account: providerAcct });
 
 const STATUSES = ["Open", "Funded", "Submitted", "Completed", "Rejected", "Expired"];
-const TEST_PRIZE = parseUnits("100", 18); // 100 PEN for test
+const TEST_PRIZE = parseUnits("100", 6); // 100 USDC for test
 const TEST_URL = "https://raw.githubusercontent.com/acastellana/erc8183-bounty/main/README.md";
 const DELIVERABLE = keccak256(toBytes(TEST_URL));
 
@@ -127,7 +127,7 @@ async function main() {
   check("Provider is address(0)", job.provider === "0x0000000000000000000000000000000000000000");
 
   // ── Step 2: Set budget ──────────────────────────────────────────────────
-  await step("setBudget (100 PEN)", () =>
+  await step("setBudget (100 USDC)", () =>
     clientW.writeContract({
       address: C.agenticCommerce, abi: commerceABI,
       functionName: "setBudget",
@@ -136,7 +136,7 @@ async function main() {
   );
 
   job = await getJobStatus(jobId);
-  check("Budget set to 100 PEN", formatUnits(job.budget, 18) === "100");
+  check("Budget set to 100 USDC", formatUnits(job.budget, 6) === "100");
 
   // ── Step 3: Set provider ────────────────────────────────────────────────
   await step("setProvider (assign importer as provider)", () =>
@@ -152,7 +152,7 @@ async function main() {
   check("Still Open", job.status === 0, STATUSES[job.status]);
 
   // ── Step 4: Mint + Approve + Fund ───────────────────────────────────────
-  await step("Mint 100 PEN for client", () =>
+  await step("Mint 100 USDC for client", () =>
     clientW.writeContract({
       address: C.paymentToken, abi: ERC20,
       functionName: "mint",
@@ -160,7 +160,7 @@ async function main() {
     })
   );
 
-  await step("Approve AgenticCommerce to spend PEN", () =>
+  await step("Approve AgenticCommerce to spend USDC", () =>
     clientW.writeContract({
       address: C.paymentToken, abi: ERC20,
       functionName: "approve",
@@ -184,7 +184,7 @@ async function main() {
     address: C.paymentToken, abi: ERC20,
     functionName: "balanceOf", args: [C.agenticCommerce],
   });
-  check("Tokens in escrow", escrowBal >= TEST_PRIZE, `${formatUnits(escrowBal, 18)} PEN`);
+  check("Tokens in escrow", escrowBal >= TEST_PRIZE, `${formatUnits(escrowBal, 6)} USDC`);
 
   // ── Step 5: Register proposal on hook ───────────────────────────────────
   await step("registerProposal on CourtAwareHook (provider)", () =>
@@ -259,7 +259,7 @@ async function main() {
     address: C.paymentToken, abi: ERC20,
     functionName: "balanceOf", args: [providerAcct.address],
   });
-  check("Provider received payment", providerBal >= TEST_PRIZE, `${formatUnits(providerBal, 18)} PEN`);
+  check("Provider received payment", providerBal >= TEST_PRIZE, `${formatUnits(providerBal, 6)} USDC`);
 
   // Check hook tracked the outcome
   const outcome = await pub.readContract({
@@ -347,7 +347,7 @@ async function main() {
     address: C.paymentToken, abi: ERC20,
     functionName: "balanceOf", args: [clientAcct.address],
   });
-  check("Client received refund", clientBal >= TEST_PRIZE, `${formatUnits(clientBal, 18)} PEN`);
+  check("Client received refund", clientBal >= TEST_PRIZE, `${formatUnits(clientBal, 6)} USDC`);
 
   // Hook stats
   const [tc2, tr2] = await pub.readContract({ address: C.courtAwareHook, abi: hookABI, functionName: "stats" });

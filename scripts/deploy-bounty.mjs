@@ -28,7 +28,6 @@ const RPC   = "https://sepolia.base.org";
 const FORGE = `${process.env.HOME}/.foundry/bin/forge`;
 
 // ── Known addresses ──────────────────────────────────────────────────────────
-const MOCK_PEN       = "0x08bc87f6511913caa4e127c5e4e91618a37a9719";
 const COURT_FACTORY  = "0xd533cB0B52E85b3F506b6f0c28b8f6bc4E449Dda";
 
 // ── Keys ─────────────────────────────────────────────────────────────────────
@@ -52,10 +51,12 @@ const ERC20_ABI = parseAbi([
 ]);
 
 // ── Bounty parameters ─────────────────────────────────────────────────────────
-const PRIZE_AMOUNT = parseUnits("50000", 18);     // 50,000 PEN
+const PRIZE_AMOUNT = parseUnits("5000", 6);     // 5,000 USDC
 const DEADLINE_DAYS = 30;
 const DEADLINE = Math.floor(Date.now() / 1000) + DEADLINE_DAYS * 86400;
 const JOB_DESCRIPTION = "ERC-8183 Court-Aware Extension Bounty: Design a court-aware extension for the Agentic Commerce Protocol that preserves the minimal escrow+evaluator primitive while enabling partial payouts, graduated penalties, refund windows, and resubmission through GenLayer AI adjudication. Deliverable: design memo, architecture diagram, judgment model, and concrete example flow.";
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 async function deployContract(name, args = []) {
   const artifact = JSON.parse(readFileSync(
@@ -72,6 +73,7 @@ async function deployContract(name, args = []) {
   const receipt = await pub.waitForTransactionReceipt({ hash });
   const addr = receipt.contractAddress;
   console.log(`  ✓ ${name} at ${addr} (tx: ${hash.slice(0, 14)}…)`);
+  await sleep(3000); // nonce cooldown between deploys
   return { address: addr, abi: artifact.abi, hash };
 }
 
@@ -79,7 +81,7 @@ async function main() {
   console.log("═══ ERC-8183 Bounty Deployment (v2 — Real Spec) ═══\n");
   console.log(`Deployer:  ${exporterAcct.address}`);
   console.log(`Network:   Base Sepolia`);
-  console.log(`Prize:     ${formatUnits(PRIZE_AMOUNT, 18)} PEN`);
+  console.log(`Prize:     ${formatUnits(PRIZE_AMOUNT, 6)} USDC`);
   console.log(`Deadline:  ${new Date(DEADLINE * 1000).toISOString()}\n`);
 
   // Step 1: Build
@@ -87,10 +89,13 @@ async function main() {
   execSync(`${FORGE} build`, { cwd: `${ROOT}/sol`, stdio: "pipe" });
   console.log("  ✓ Compiled\n");
 
+  console.log("▸ Deploying MockUSDC...");
+  const mockUSDC = await deployContract("MockUSDC");
+
   // Step 2: Deploy AgenticCommerce
   console.log("▸ Deploying ERC-8183 contracts...");
   const commerce = await deployContract("AgenticCommerce", [
-    MOCK_PEN,                // paymentToken
+    mockUSDC.address,        // paymentToken
     exporterAcct.address,    // treasury (fee recipient)
     0n,                      // feeBps (0 = no fee for bounty)
   ]);
@@ -139,26 +144,26 @@ async function main() {
     args: [jobId, PRIZE_AMOUNT, "0x"],
   });
   await pub.waitForTransactionReceipt({ hash: budgetHash });
-  console.log(`  ✓ Budget set to ${formatUnits(PRIZE_AMOUNT, 18)} PEN\n`);
+  console.log(`  ✓ Budget set to ${formatUnits(PRIZE_AMOUNT, 6)} USDC\n`);
 
   // Note: funding happens after a provider is set (per ERC-8183 spec).
   // For the bounty, the client will fund when a provider (submitter) is assigned.
 
-  // Step 7: Mint PEN for the prize pool
+  // Step 7: Mint USDC for the prize pool
   console.log("▸ Minting prize tokens...");
   const mintHash = await wallet.writeContract({
-    address: MOCK_PEN,
+    address: mockUSDC.address,
     abi: ERC20_ABI,
     functionName: "mint",
     args: [exporterAcct.address, PRIZE_AMOUNT],
   });
   await pub.waitForTransactionReceipt({ hash: mintHash });
-  console.log(`  ✓ Minted ${formatUnits(PRIZE_AMOUNT, 18)} PEN\n`);
+  console.log(`  ✓ Minted ${formatUnits(PRIZE_AMOUNT, 6)} USDC\n`);
 
   // Step 8: Pre-approve AgenticCommerce to spend tokens (for when we fund)
   console.log("▸ Pre-approving token spend...");
   const approveHash = await wallet.writeContract({
-    address: MOCK_PEN,
+    address: mockUSDC.address,
     abi: ERC20_ABI,
     functionName: "approve",
     args: [commerce.address, PRIZE_AMOUNT],
@@ -179,13 +184,13 @@ async function main() {
       agenticCommerce: commerce.address,
       genLayerEvaluator: evaluator.address,
       courtAwareHook: hook.address,
-      paymentToken: MOCK_PEN,
+      paymentToken: mockUSDC.address,
       internetCourtFactory: COURT_FACTORY,
     },
     job: {
       jobId: Number(jobId),
       description: JOB_DESCRIPTION,
-      prizeAmount: formatUnits(PRIZE_AMOUNT, 18),
+      prizeAmount: formatUnits(PRIZE_AMOUNT, 6),
       deadline: new Date(DEADLINE * 1000).toISOString(),
       deadlineUnix: DEADLINE,
       client: exporterAcct.address,

@@ -1,0 +1,28 @@
+{
+  "1": {
+    "proposalUrl": "https://raw.githubusercontent.com/acastellana/erc8183-bounty/main/README.md",
+    "proposalTitle": "Test Proposal: ERC-8183 Lifecycle Validation",
+    "signal1": {
+      "txHash": "0x28ea4a51aa2757f10ac1925918bc2cc4acefb69695bb0a2c0152c49e2c0a7475",
+      "finalized": false
+    },
+    "signal2": {
+      "txHash": "0x52dda889c5b7e745b222bd2342ca153f26f1b7aaa098bbe3f07b7b21220f65a3",
+      "finalized": false
+    },
+    "timestamp": 1773130331
+  },
+  "2": {
+    "proposalUrl": "https://raw.githubusercontent.com/acastellana/erc8183-bounty/main/README.md",
+    "proposalTitle": "Test Reject Proposal",
+    "signal1": {
+      "txHash": "0x8f4c4990b0415a42368d451cb3a2ce91658b56908bd0b057286ea52b2633fc98",
+      "finalized": false
+    },
+    "signal2": {
+      "txHash": "0x3e5c11f485b3f11b2353d17ba50d62f4c42353e24284006a259b79ccd8cd6ca8",
+      "finalized": false
+    },
+    "timestamp": 1773130866
+  }
+}

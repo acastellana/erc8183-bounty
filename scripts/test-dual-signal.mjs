@@ -38,7 +38,7 @@ const clientW = createWalletClient({ chain: baseSepolia, transport, account: cli
 const providerW = createWalletClient({ chain: baseSepolia, transport, account: providerAcct });
 
 const STATUSES = ["Open","Funded","Submitted","Completed","Rejected","Expired"];
-const PRIZE = parseUnits("50", 18);
+const PRIZE = parseUnits("50", 6);
 const URL = "https://raw.githubusercontent.com/acastellana/erc8183-bounty/main/README.md";
 const DELIVERABLE = keccak256(toBytes(URL));
 const NEW_EVAL = C.genLayerEvaluator; // v2 dual-signal
@@ -53,7 +53,7 @@ async function tx(label, fn) {
   const r = await pub.waitForTransactionReceipt({ hash: h });
   console.log(r.status==="success" ? "✓" : "✗");
   check(label, r.status==="success");
-  await sleep(2500);
+  await sleep(4000);
   return r;
 }
 

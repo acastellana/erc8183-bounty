@@ -54,7 +54,7 @@ async function main() {
   // ── 2. AgenticCommerce state ────────────────────────────────────────────
   console.log("\n▸ AgenticCommerce state");
   const token = await r(C.agenticCommerce, commerceABI, "paymentToken");
-  check("Payment token is MockPEN", token.toLowerCase() === C.paymentToken.toLowerCase());
+  check("Payment token is MockUSDC", token.toLowerCase() === C.paymentToken.toLowerCase());
 
   const jobCount = await r(C.agenticCommerce, commerceABI, "jobCount");
   check("At least 1 job exists", Number(jobCount) >= 1, `jobCount=${jobCount}`);
@@ -69,7 +69,7 @@ async function main() {
   check("Evaluator is GenLayerEvaluator", evaluator.toLowerCase() === C.genLayerEvaluator.toLowerCase());
   check("Hook is CourtAwareHook", hook.toLowerCase() === C.courtAwareHook.toLowerCase());
   check("Status is Open (0)", Number(status) === 0);
-  check("Budget is 50,000 PEN", formatUnits(budget, 18) === "50000.0" || formatUnits(budget, 18) === "50000", formatUnits(budget, 18));
+  check("Budget is 5,000 USDC", formatUnits(budget, 6) === "5000.0" || formatUnits(budget, 6) === "5000", formatUnits(budget, 6));
   check("Deadline is future", Number(expiredAt) > Math.floor(Date.now()/1000), new Date(Number(expiredAt)*1000).toISOString());
   check("Description is set", desc.length > 50, `${desc.length} chars`);
 
