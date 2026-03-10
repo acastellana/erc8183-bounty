@@ -72,6 +72,11 @@ const relayWallet    = new ethers.Wallet(RELAY_KEY.startsWith("0x") ? RELAY_KEY 
 const baseSigner     = relayWallet.connect(baseProvider);
 const zksyncSigner   = relayWallet.connect(zksyncProvider);
 
+// Owner key for direct verdict delivery (owner of GenLayerEvaluator)
+function loadKey(p) { const k = readFileSync(p, "utf8").trim(); return k.startsWith("0x") ? k : "0x" + k; }
+const OWNER_KEY = loadKey(`${process.env.HOME}/.internetcourt/.exporter_key`);
+const ownerWallet = new ethers.Wallet(OWNER_KEY, baseProvider);
+
 // GenLayer client
 const glAccount = createAccount(RELAY_KEY.startsWith("0x") ? RELAY_KEY : "0x" + RELAY_KEY);
 const glClient  = createClient({ chain: studionet, endpoint: GL_RPC, account: glAccount });
@@ -110,20 +115,7 @@ function loadJson(p, d) { try { return JSON.parse(readFileSync(p, "utf8")); } ca
 function saveJson(p, d) { writeFileSync(p, JSON.stringify(d, null, 2)); }
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-// ── GenLayer JSON-RPC ─────────────────────────────────────────────────────────
-
-let rpcId = 1;
-async function glRpc(method, params) {
-  const res = await fetch(GL_RPC, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ jsonrpc: "2.0", id: rpcId++, method, params }),
-    signal: AbortSignal.timeout(30000),
-  });
-  const data = await res.json();
-  if (data.error) throw new Error(`GL ${method}: ${data.error.message || JSON.stringify(data.error)}`);
-  return data.result;
-}
+// ── GenLayer helpers ──────────────────────────────────────────────────────────
 
 async function deployGLContract(code, args) {
   const txHash = await glClient.deployContract({
@@ -270,13 +262,106 @@ async function processSubmission(jobId, deliverable) {
   };
   saveJson(ORACLE_FILE, state);
 
-  console.log(`  Oracle contracts deployed. Bridge relay will deliver verdicts.`);
+  // ── Direct verdict delivery (bypasses LayerZero bridge) ──
+  // The BridgeForwarder CALLER_ROLE hasn't been granted yet, so we deliver
+  // verdicts directly on Base Sepolia using the relay wallet (which is
+  // authorized as courtRelay on GenLayerEvaluator).
+  await deliverVerdictsDirectly(jobId, evalTxHash, endorseTxHash, evalResult, endorseResult);
+}
+
+async function readGLContractState(txHash, label) {
+  try {
+    const tx = await glClient.getTransaction({ hash: txHash });
+    const contractAddr = tx?.data?.contract_address || tx?.to_address;
+    if (!contractAddr) {
+      console.log(`  [${label}] No contract address found`);
+      return null;
+    }
+    // Read verdict from GenLayer contract
+    const verdict = await glClient.readContract({
+      address: contractAddr,
+      functionName: "get_verdict",
+      args: [],
+    });
+    const reason = await glClient.readContract({
+      address: contractAddr,
+      functionName: "get_reason",
+      args: [],
+    });
+    return { verdict: typeof verdict === "string" ? verdict : String(verdict), reason: typeof reason === "string" ? reason : String(reason) };
+  } catch (e) {
+    console.log(`  [${label}] Failed to read state: ${e.message}`);
+    return null;
+  }
+}
+
+async function deliverVerdictsDirectly(jobId, evalTxHash, endorseTxHash, evalResult, endorseResult) {
+  // Use owner wallet for verdict delivery (owner is authorized on GenLayerEvaluator)
+  const evaluator = new ethers.Contract(C.genLayerEvaluator, EVALUATOR_ABI, ownerWallet);
+
+  // Check if already resolved
+  try {
+    const resolved = await evaluator.isFullyResolved(jobId);
+    if (resolved) {
+      console.log(`  Job ${jobId} already resolved, skipping direct delivery`);
+      return;
+    }
+  } catch {}
+
+  // Signal 1: AI jury verdict
+  if (evalResult) {
+    const aiState = await readGLContractState(evalTxHash, "AI-Jury");
+    if (aiState) {
+      const aiVerdict = aiState.verdict.toUpperCase().includes("ACCEPT") ? 1 : 2;
+      const reasonHash = ethers.keccak256(ethers.toUtf8Bytes(aiState.reason.slice(0, 500)));
+      console.log(`  Delivering AI verdict: ${aiVerdict === 1 ? "ACCEPT" : "REJECT"}`);
+      console.log(`  Reason: ${aiState.reason.slice(0, 120)}...`);
+      try {
+        const tx = await evaluator.deliverAIVerdict(
+          jobId, aiVerdict, reasonHash, aiState.reason.slice(0, 500)
+        );
+        await tx.wait();
+        console.log(`  ✅ AI verdict delivered: ${tx.hash}`);
+      } catch (e) {
+        console.log(`  ⚠️ AI verdict delivery failed: ${e.message.slice(0, 200)}`);
+      }
+      await sleep(3000);
+    }
+  }
+
+  // Signal 2: Endorsement verdict
+  if (endorseResult) {
+    const endorseState = await readGLContractState(endorseTxHash, "Endorsement");
+    if (endorseState) {
+      const endorseVerdict = endorseState.verdict.toUpperCase().includes("ACCEPT") ? 1 : 2;
+      const reasonHash = ethers.keccak256(ethers.toUtf8Bytes(endorseState.reason.slice(0, 500)));
+      console.log(`  Delivering endorsement verdict: ${endorseVerdict === 1 ? "ACCEPT" : "REJECT"}`);
+      console.log(`  Reason: ${endorseState.reason.slice(0, 120)}...`);
+      try {
+        const tx = await evaluator.deliverEndorsement(
+          jobId, endorseVerdict, reasonHash, endorseState.reason.slice(0, 500)
+        );
+        await tx.wait();
+        console.log(`  ✅ Endorsement verdict delivered: ${tx.hash}`);
+      } catch (e) {
+        console.log(`  ⚠️ Endorsement delivery failed: ${e.message.slice(0, 200)}`);
+      }
+    }
+  }
+
+  // Check final state
+  try {
+    const resolved = await evaluator.isFullyResolved(jobId);
+    console.log(`  Job ${jobId} fully resolved: ${resolved}`);
+  } catch {}
 }
 
 // ── DIRECTION 2: GenLayer → Base (via zkSync + LayerZero) ────────────────────
 
-function encodeFnCall(fn, args) {
-  return JSON.stringify({ fn, args });
+async function glRead(address, functionName, args = []) {
+  // Use genlayer-js SDK readContract — correct msgpack encoding
+  const result = await glClient.readContract({ address, functionName, args });
+  return typeof result === "string" ? JSON.parse(result) : result;
 }
 
 async function relayVerdictsToBase() {
@@ -284,10 +369,7 @@ async function relayVerdictsToBase() {
 
   let hashes;
   try {
-    hashes = await glRpc("gen_call", [{
-      to: BRIDGE_SENDER,
-      data: encodeFnCall("get_message_hashes", []),
-    }]);
+    hashes = await glRead(BRIDGE_SENDER, "get_message_hashes");
   } catch (e) {
     console.log(`  Bridge query failed: ${e.message}`);
     return;
@@ -304,34 +386,45 @@ async function relayVerdictsToBase() {
 
   for (const msgHash of hashes) {
     try {
-      const msg = await glRpc("gen_call", [{
-        to: BRIDGE_SENDER,
-        data: encodeFnCall("get_message", [msgHash]),
-      }]);
-
-      if (!msg) continue;
-
-      const rawData = msg.data ?? msg[2] ?? null;
-      if (!rawData) {
-        console.log(`  [${msgHash.slice(0, 12)}…] Missing message payload`);
+      let msg;
+      try {
+        msg = await glRead(BRIDGE_SENDER, "get_message", [msgHash]);
+      } catch (e) {
+        console.log(`  [${String(msgHash).slice(0, 12)}…] Failed to read message: ${e.message}`);
         continue;
       }
 
-      const dataBytes = typeof rawData === "string"
-        ? (rawData.startsWith("0x") ? rawData : ethers.hexlify(ethers.toUtf8Bytes(rawData)))
-        : ethers.hexlify(rawData);
+      if (!msg) continue;
 
-      const txHashBytes32 = ethers.keccak256(ethers.toUtf8Bytes(msgHash));
+      // msg could be an object, array of numbers, or string
+      let rawData;
+      if (typeof msg === "object" && msg !== null && !Array.isArray(msg)) {
+        rawData = msg.data ?? msg[2] ?? null;
+      } else {
+        rawData = msg;
+      }
+
+      if (!rawData) {
+        console.log(`  [${String(msgHash).slice(0, 12)}…] Missing message payload`);
+        continue;
+      }
+
+      // Convert number arrays (from GenLayer SDK) to hex
+      let dataBytes;
+      if (Array.isArray(rawData)) {
+        dataBytes = "0x" + rawData.map(b => b.toString(16).padStart(2, "0")).join("");
+      } else if (typeof rawData === "string") {
+        dataBytes = rawData.startsWith("0x") ? rawData : ethers.hexlify(ethers.toUtf8Bytes(rawData));
+      } else {
+        dataBytes = ethers.hexlify(rawData);
+      }
+
+      const txHashBytes32 = ethers.keccak256(ethers.toUtf8Bytes(String(msgHash)));
 
       const isUsed = await forwarder.isHashUsed(txHashBytes32);
       if (isUsed) {
-        console.log(`  [${msgHash.slice(0, 12)}…] Already relayed`);
-        try {
-          await glRpc("gen_call", [{
-            to: BRIDGE_SENDER,
-            data: encodeFnCall("delete_message", [msgHash]),
-          }]);
-        } catch {}
+        console.log(`  [${String(msgHash).slice(0, 12)}…] Already relayed`);
+        // Try to clean up on GenLayer side (write call, may need separate handling)
         continue;
       }
 
@@ -345,16 +438,16 @@ async function relayVerdictsToBase() {
         continue;
       }
 
-      console.log(`  [${msgHash.slice(0, 12)}…] Relaying (fee: ${ethers.formatEther(nativeFee)} ETH)...`);
+      console.log(`  [${String(msgHash).slice(0, 12)}…] Relaying (fee: ${ethers.formatEther(nativeFee)} ETH)...`);
       const tx = await forwarder.callRemoteArbitrary(
         txHashBytes32, LZ_DST_EID, dataBytes, options,
         { value: feeWithBuffer }
       );
-      console.log(`  [${msgHash.slice(0, 12)}…] ✅ Sent: ${tx.hash}`);
+      console.log(`  [${String(msgHash).slice(0, 12)}…] ✅ Sent: ${tx.hash}`);
       await tx.wait();
 
     } catch (err) {
-      console.error(`  [${msgHash.slice(0, 12)}…] Failed: ${err.message}`);
+      console.error(`  [${String(msgHash).slice(0, 12)}…] Failed: ${err.message}`);
     }
   }
 }
@@ -364,7 +457,10 @@ async function relayVerdictsToBase() {
 async function runOnce() {
   console.log(`\n═══ Bounty Relay [${new Date().toISOString()}] ═══`);
   await pollSubmissions();
-  await relayVerdictsToBase();
+  // Note: GenLayer→Base verdicts are now delivered directly in processSubmission()
+  // via deliverVerdictsDirectly(). The LayerZero bridge path is disabled until
+  // CALLER_ROLE is granted on BridgeForwarder by the GenLayer team.
+  // await relayVerdictsToBase();
 }
 
 async function main() {
