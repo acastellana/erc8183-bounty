@@ -4,141 +4,92 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ERC-8183 Court-Aware Extension Bounty</title>
+  <meta name="description" content="Open bounty for proposals that extend the Agentic Commerce Protocol with court-aware dispute resolution via GenLayer AI adjudication." />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet" />
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --bg: #ffffff; --card: #f8f8f6; --dark: #1a1817; --muted: #74706c;
-      --border: #e8e6e3; --green: #15803d; --green-light: #dcfce7;
-      --blue: #1d4ed8; --blue-light: #dbeafe; --amber: #b45309; --amber-light: #fef3c7;
-      --red: #dc2626; --red-light: #fee2e2; --purple: #7c3aed; --purple-light: #ede9fe;
-      --radius: 12px; --radius-xl: 20px;
-      --shadow-sm: 0 2px 4px rgba(0,0,0,0.04);
-      --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
-    }
-    body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--bg); color: var(--dark); font-size: 18px; line-height: 1.65; -webkit-font-smoothing: antialiased; }
-    .container { max-width: 960px; margin: 0 auto; padding: 0 40px; }
-    .section-label { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; display: block; }
-    a { color: var(--blue); text-decoration: none; }
-    a:hover { text-decoration: underline; }
-    code, .mono { font-family: 'DM Mono', monospace; }
-
-    /* ── HEADER ── */
-    header { padding: 28px 0; border-bottom: 1px solid var(--border); }
-    .header-inner { display: flex; align-items: center; justify-content: space-between; }
-    .logo { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--dark); font-weight: 700; font-size: 15px; }
-    .logo-chip { background: var(--dark); color: #fff; border-radius: 6px; padding: 2px 8px; font-size: 11px; font-family: 'DM Mono', monospace; font-weight: 600; }
-    .badge-live { display: inline-flex; align-items: center; gap: 6px; background: var(--green-light); color: var(--green); border-radius: 9999px; padding: 4px 14px; font-size: 12px; font-weight: 600; font-family: 'DM Mono', monospace; }
-    .badge-live .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
-
-    /* ── HERO ── */
-    .hero { padding: 80px 0 72px; }
-    .hero-eyebrow { display: inline-flex; align-items: center; gap: 6px; background: var(--purple-light); border: 1px solid var(--purple); border-radius: 9999px; padding: 4px 14px; font-size: 12px; font-weight: 600; color: var(--purple); font-family: 'DM Mono', monospace; margin-bottom: 28px; }
-    .hero h1 { font-size: clamp(32px, 4.5vw, 48px); font-weight: 700; line-height: 1.1; letter-spacing: -1.5px; max-width: 720px; margin-bottom: 28px; }
-    .hero h1 em { font-style: normal; color: var(--purple); }
-    .hero-body { font-size: 19px; color: var(--muted); line-height: 1.75; max-width: 600px; margin-bottom: 36px; }
-
-    /* ── PRIZE BOX ── */
-    .prize-box { display: flex; gap: 32px; flex-wrap: wrap; margin-bottom: 0; }
-    .prize-card { flex: 1; min-width: 200px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; }
-    .prize-card .label { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
-    .prize-card .value { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
-    .prize-card .sub { font-size: 14px; color: var(--muted); margin-top: 4px; }
-
-    /* ── SECTIONS ── */
-    section { padding: 80px 0; border-top: 1px solid var(--border); }
-    section h2 { font-size: clamp(24px, 3.5vw, 34px); font-weight: 700; letter-spacing: -0.7px; margin-bottom: 32px; }
-    section h3 { font-size: 20px; font-weight: 600; margin-bottom: 12px; margin-top: 28px; }
-
-    /* ── WHAT IS ERC-8183 ── */
-    .erc-explainer { background: var(--card); border-radius: var(--radius-xl); padding: 40px; margin-bottom: 0; }
-    .erc-explainer h3 { margin-top: 0; }
-    .erc-interface { background: var(--dark); color: #e8e6e3; border-radius: var(--radius); padding: 24px; margin: 20px 0; font-size: 14px; line-height: 1.7; overflow-x: auto; }
-    .erc-interface .kw { color: #c084fc; }
-    .erc-interface .fn { color: #60a5fa; }
-    .erc-interface .ty { color: #4ade80; }
-    .erc-interface .cm { color: #6b7280; }
-
-    /* ── CRITERIA CARDS ── */
-    .criteria-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
-    .criterion { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; display: flex; gap: 16px; align-items: flex-start; }
-    .criterion-num { background: var(--purple); color: #fff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; flex-shrink: 0; }
-    .criterion h4 { font-size: 17px; font-weight: 600; margin-bottom: 6px; }
-    .criterion p { font-size: 15px; color: var(--muted); line-height: 1.6; }
-
-    /* ── HOW IT WORKS ── */
-    .flow-steps { display: grid; gap: 0; position: relative; }
-    .flow-step { display: grid; grid-template-columns: 48px 1fr; gap: 16px; padding-bottom: 32px; position: relative; }
-    .flow-step:last-child { padding-bottom: 0; }
-    .flow-step::before { content: ''; position: absolute; left: 23px; top: 48px; bottom: 0; width: 2px; background: var(--border); }
-    .flow-step:last-child::before { display: none; }
-    .flow-icon { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; background: var(--card); border: 2px solid var(--border); position: relative; z-index: 1; }
-    .flow-content h4 { font-size: 17px; font-weight: 600; margin-bottom: 4px; padding-top: 12px; }
-    .flow-content p { font-size: 15px; color: var(--muted); line-height: 1.6; }
-    .flow-content .mono-sm { font-family: 'DM Mono', monospace; font-size: 13px; background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 12px 16px; margin-top: 8px; display: block; color: var(--dark); }
-
-    /* ── ARCHITECTURE ── */
-    .arch-diagram { background: var(--dark); border-radius: var(--radius-xl); padding: 40px; color: #e8e6e3; margin: 24px 0; }
-    .arch-diagram pre { font-family: 'DM Mono', monospace; font-size: 13px; line-height: 1.6; overflow-x: auto; white-space: pre; }
-    .arch-diagram .layer-label { color: #c084fc; }
-    .arch-diagram .comp { color: #60a5fa; }
-    .arch-diagram .arrow { color: #6b7280; }
-    .arch-diagram .highlight { color: #4ade80; }
-
-    /* ── CONTRACTS TABLE ── */
-    .contracts-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-    .contracts-table th { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-align: left; padding: 8px 16px; border-bottom: 2px solid var(--border); }
-    .contracts-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 15px; }
-    .contracts-table td:first-child { font-weight: 600; }
-    .contracts-table .addr { font-family: 'DM Mono', monospace; font-size: 13px; }
-    .contracts-table a { word-break: break-all; }
-
-    /* ── SUBMIT SECTION ── */
-    .submit-section { background: var(--dark); color: #fff; border-top: none; }
-    .submit-section h2 { color: #fff; }
-    .submit-section .section-label { color: rgba(255,255,255,0.3); }
-    .submit-section p { color: rgba(255,255,255,0.7); }
-    .submit-box { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-xl); padding: 32px; margin-top: 28px; }
-    .submit-steps { list-style: none; }
-    .submit-steps li { padding: 8px 0; font-size: 16px; color: rgba(255,255,255,0.85); display: flex; gap: 12px; align-items: flex-start; }
-    .submit-steps li::before { content: '→'; color: var(--purple); font-weight: 700; flex-shrink: 0; }
-    .submit-steps li code { background: rgba(255,255,255,0.08); padding: 2px 8px; border-radius: 4px; font-size: 14px; }
-
-    /* ── DOGFOODING ── */
-    .dogfood-banner { background: var(--amber-light); border: 1px solid var(--amber); border-radius: var(--radius); padding: 20px 24px; margin: 32px 0; display: flex; gap: 12px; align-items: flex-start; }
-    .dogfood-banner .icon { font-size: 22px; flex-shrink: 0; }
-    .dogfood-banner p { font-size: 15px; color: var(--dark); line-height: 1.6; }
-    .dogfood-banner strong { color: var(--amber); }
-
-    /* ── FOOTER ── */
-    footer { padding: 40px 0; border-top: 1px solid var(--border); }
-    .footer-inner { display: flex; justify-content: space-between; align-items: center; font-size: 14px; color: var(--muted); }
-    .footer-links { display: flex; gap: 24px; }
-    .footer-links a { color: var(--muted); font-size: 14px; }
-    .footer-links a:hover { color: var(--dark); }
-
-    @media (max-width: 640px) {
-      .container { padding: 0 20px; }
-      .hero { padding: 48px 0 40px; }
-      .prize-box { flex-direction: column; }
-      .erc-explainer { padding: 24px; }
-      .arch-diagram { padding: 24px; }
-      .submit-box { padding: 20px; }
-    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--bg:#fff;--card:#f8f8f6;--dark:#1a1817;--muted:#74706c;--border:#e8e6e3;--green:#15803d;--green-l:#dcfce7;--blue:#1d4ed8;--blue-l:#dbeafe;--amber:#b45309;--amber-l:#fef3c7;--purple:#7c3aed;--purple-l:#ede9fe;--r:12px;--r-xl:20px}
+    body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--dark);font-size:18px;line-height:1.65;-webkit-font-smoothing:antialiased}
+    .container{max-width:960px;margin:0 auto;padding:0 40px}
+    .label{font-family:'DM Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;display:block}
+    a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}
+    code,.mono{font-family:'DM Mono',monospace}
+    header{padding:28px 0;border-bottom:1px solid var(--border)}
+    .header-inner{display:flex;align-items:center;justify-content:space-between}
+    .logo{display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--dark);font-weight:700;font-size:15px}
+    .logo-chip{background:var(--dark);color:#fff;border-radius:6px;padding:2px 8px;font-size:11px;font-family:'DM Mono',monospace;font-weight:600}
+    .badge{display:inline-flex;align-items:center;gap:6px;border-radius:9999px;padding:4px 14px;font-size:12px;font-weight:600;font-family:'DM Mono',monospace}
+    .badge-live{background:var(--green-l);color:var(--green)}
+    .badge-live .dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+    .hero{padding:80px 0 72px}
+    .hero-tag{display:inline-flex;align-items:center;gap:6px;background:var(--purple-l);border:1px solid var(--purple);border-radius:9999px;padding:4px 14px;font-size:12px;font-weight:600;color:var(--purple);font-family:'DM Mono',monospace;margin-bottom:28px}
+    .hero h1{font-size:clamp(32px,4.5vw,48px);font-weight:700;line-height:1.1;letter-spacing:-1.5px;max-width:720px;margin-bottom:28px}
+    .hero h1 em{font-style:normal;color:var(--purple)}
+    .hero-body{font-size:19px;color:var(--muted);line-height:1.75;max-width:600px;margin-bottom:36px}
+    .cards{display:flex;gap:24px;flex-wrap:wrap}
+    .card{flex:1;min-width:200px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:24px}
+    .card .val{font-size:28px;font-weight:700;letter-spacing:-.5px;margin-top:8px}
+    .card .sub{font-size:14px;color:var(--muted);margin-top:4px}
+    section{padding:80px 0;border-top:1px solid var(--border)}
+    section h2{font-size:clamp(24px,3.5vw,34px);font-weight:700;letter-spacing:-.7px;margin-bottom:32px}
+    section h3{font-size:20px;font-weight:600;margin:28px 0 12px}
+    .box{background:var(--card);border-radius:var(--r-xl);padding:40px;margin-bottom:0}
+    .code-block{background:var(--dark);color:#e8e6e3;border-radius:var(--r);padding:24px;font-size:14px;line-height:1.7;overflow-x:auto;font-family:'DM Mono',monospace}
+    .code-block .kw{color:#c084fc}.code-block .fn{color:#60a5fa}.code-block .ty{color:#4ade80}.code-block .cm{color:#6b7280}.code-block .st{color:#fbbf24}
+    .criteria{display:grid;gap:16px}
+    .crit{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:24px;display:flex;gap:16px;align-items:flex-start}
+    .crit-n{background:var(--purple);color:#fff;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0}
+    .crit h4{font-size:17px;font-weight:600;margin-bottom:6px}
+    .crit p{font-size:15px;color:var(--muted);line-height:1.6}
+    .flow{display:grid;gap:0;position:relative}
+    .step{display:grid;grid-template-columns:48px 1fr;gap:16px;padding-bottom:32px;position:relative}
+    .step:last-child{padding-bottom:0}
+    .step::before{content:'';position:absolute;left:23px;top:48px;bottom:0;width:2px;background:var(--border)}
+    .step:last-child::before{display:none}
+    .step-icon{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;background:var(--card);border:2px solid var(--border);position:relative;z-index:1}
+    .step-body h4{font-size:17px;font-weight:600;margin-bottom:4px;padding-top:12px}
+    .step-body p{font-size:15px;color:var(--muted);line-height:1.6}
+    .step-body .mono-box{font-family:'DM Mono',monospace;font-size:13px;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:12px 16px;margin-top:8px;display:block;color:var(--dark)}
+    .arch{background:var(--dark);border-radius:var(--r-xl);padding:40px;color:#e8e6e3;margin:24px 0}
+    .arch pre{font-family:'DM Mono',monospace;font-size:13px;line-height:1.6;overflow-x:auto;white-space:pre}
+    .arch .l{color:#c084fc}.arch .c{color:#60a5fa}.arch .a{color:#6b7280}.arch .h{color:#4ade80}
+    table.t{width:100%;border-collapse:collapse;margin:20px 0}
+    table.t th{font-family:'DM Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-align:left;padding:8px 16px;border-bottom:2px solid var(--border)}
+    table.t td{padding:12px 16px;border-bottom:1px solid var(--border);font-size:15px}
+    table.t td:first-child{font-weight:600}
+    .addr{font-family:'DM Mono',monospace;font-size:13px}
+    .dark-section{background:var(--dark);color:#fff;border-top:none}
+    .dark-section h2{color:#fff}.dark-section .label{color:rgba(255,255,255,.3)}.dark-section p{color:rgba(255,255,255,.7)}
+    .dark-box{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:var(--r-xl);padding:32px;margin-top:28px}
+    .dark-box ul{list-style:none}
+    .dark-box li{padding:8px 0;font-size:16px;color:rgba(255,255,255,.85);display:flex;gap:12px;align-items:flex-start}
+    .dark-box li::before{content:'→';color:var(--purple);font-weight:700;flex-shrink:0}
+    .dark-box code{background:rgba(255,255,255,.08);padding:2px 8px;border-radius:4px;font-size:14px}
+    .notice{border-radius:var(--r);padding:20px 24px;margin:32px 0;display:flex;gap:12px;align-items:flex-start}
+    .notice .icon{font-size:22px;flex-shrink:0}
+    .notice p{font-size:15px;line-height:1.6}
+    .notice-amber{background:var(--amber-l);border:1px solid var(--amber)}.notice-amber strong{color:var(--amber)}
+    .notice-purple{background:var(--purple-l);border:1px solid var(--purple)}.notice-purple strong{color:var(--purple)}
+    .arrow-item{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px}
+    .arrow-item span{color:var(--purple);font-weight:700;font-size:18px}
+    .arrow-item p{font-size:16px}
+    footer{padding:40px 0;border-top:1px solid var(--border)}
+    .footer-inner{display:flex;justify-content:space-between;align-items:center;font-size:14px;color:var(--muted);flex-wrap:wrap;gap:16px}
+    .footer-links{display:flex;gap:24px}.footer-links a{color:var(--muted);font-size:14px}.footer-links a:hover{color:var(--dark)}
+    @media(max-width:640px){.container{padding:0 20px}.hero{padding:48px 0 40px}.cards{flex-direction:column}.box,.arch,.dark-box{padding:24px}}
   </style>
 </head>
 <body>
 
-<!-- ═══ HEADER ═══ -->
 <header>
   <div class="container">
     <div class="header-inner">
       <a href="#" class="logo">ERC-8183 <span class="logo-chip">BOUNTY</span></a>
-      <span class="badge-live"><span class="dot"></span> Live on Base Sepolia</span>
+      <span class="badge badge-live"><span class="dot"></span> Live on Base Sepolia</span>
     </div>
   </div>
 </header>
@@ -146,42 +97,43 @@
 <!-- ═══ HERO ═══ -->
 <div class="hero">
   <div class="container">
-    <div class="hero-eyebrow">🏛️ Open bounty · GenLayer evaluation</div>
-    <h1>Design a <em>court-aware</em> extension for&nbsp;ERC&#8209;8183</h1>
+    <div class="hero-tag">🏛️ Open bounty · GenLayer AI evaluation</div>
+    <h1>Design a <em>court-aware</em> extension for the Agentic Commerce&nbsp;Protocol</h1>
     <p class="hero-body">
-      ERC-8183 is a minimal escrow&nbsp;+&nbsp;evaluator primitive. We're looking for proposals that layer
-      richer commercial logic on top — partial payouts, graduated penalties, refund windows, resubmission —
-      without modifying the base&nbsp;interface.
+      ERC-8183 defines a minimal job escrow with evaluator attestation — but it has
+      no dispute resolution. <em>Reject/expire is final.</em> We're looking for
+      proposals that add GenLayer AI adjudication: partial payouts, graduated penalties,
+      resubmission windows, and multi-round evaluation — all through the hooks system.
     </p>
-    <div class="prize-box">
-      <div class="prize-card">
-        <div class="label">Prize pool</div>
-        <div class="value">50,000 PEN</div>
-        <div class="sub">Held in ERC-8183 escrow on Base Sepolia</div>
+    <div class="cards">
+      <div class="card">
+        <span class="label">Prize pool</span>
+        <div class="val">50,000 PEN</div>
+        <div class="sub">Held in ERC-8183 job escrow on Base Sepolia</div>
       </div>
-      <div class="prize-card">
-        <div class="label">Deadline</div>
-        <div class="value" id="deadline-display">30 days</div>
+      <div class="card">
+        <span class="label">Deadline</span>
+        <div class="val">30 days</div>
         <div class="sub" id="deadline-date"></div>
       </div>
-      <div class="prize-card">
-        <div class="label">Evaluator</div>
-        <div class="value" style="font-size:20px;">GenLayer AI&nbsp;Jury</div>
-        <div class="sub">Multi-LLM consensus evaluation</div>
+      <div class="card">
+        <span class="label">Evaluator</span>
+        <div class="val" style="font-size:20px">GenLayer AI&nbsp;Jury</div>
+        <div class="sub">Multi-LLM consensus via GenLayerEvaluator</div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ═══ DOGFOODING NOTICE ═══ -->
 <div class="container">
-  <div class="dogfood-banner">
+  <div class="notice notice-amber">
     <div class="icon">🐕</div>
     <p>
-      <strong>This bounty eats its own dogfood.</strong> The prize is held in a real ERC-8183 escrow contract.
-      Submissions are evaluated by a GenLayer AI jury. If the jury accepts your proposal, the contract
-      releases the prize to your address automatically. The bounty itself is a working demonstration of
-      ERC-8183 in action.
+      <strong>This bounty eats its own dogfood.</strong> The prize is an actual ERC-8183 job —
+      <code>createJob()</code> with a GenLayer evaluator and a CourtAwareHook. When you submit a proposal,
+      the AI jury evaluates it on GenLayer and delivers the verdict back via LayerZero bridge to
+      call <code>complete()</code> or <code>reject()</code> on the job. The bounty itself demonstrates
+      the pattern you're being asked to extend.
     </p>
   </div>
 </div>
@@ -189,86 +141,102 @@
 <!-- ═══ WHAT IS ERC-8183 ═══ -->
 <section>
   <div class="container">
-    <span class="section-label">The primitive</span>
+    <span class="label">The standard</span>
     <h2>What is ERC-8183?</h2>
-    <div class="erc-explainer">
-      <h3>A minimal escrow with an external evaluator</h3>
-      <p style="color:var(--muted); margin-bottom: 20px;">
-        ERC-8183 defines the simplest possible pattern: lock funds, submit something for evaluation,
-        get a verdict, distribute funds. It deliberately says nothing about <em>what</em> is evaluated
-        or <em>how</em> the verdict maps to payouts — that's what extensions are for.
+    <div class="box">
+      <h3 style="margin-top:0">Agentic Commerce Protocol</h3>
+      <p style="color:var(--muted);margin-bottom:20px">
+        ERC-8183 defines a <strong>job escrow with evaluator attestation</strong> for AI agent commerce.
+        Three roles, six states, and an optional hooks system for extensibility.
+        <a href="https://eips.ethereum.org/EIPS/eip-8183" target="_blank">Read the full EIP →</a>
       </p>
-      <div class="erc-interface">
-<pre><span class="kw">interface</span> <span class="ty">IERC8183</span> {
-  <span class="cm">// Deposit funds into escrow</span>
-  <span class="kw">function</span> <span class="fn">deposit</span>(<span class="ty">address</span> token, <span class="ty">uint256</span> amount) <span class="kw">external payable</span>;
 
-  <span class="cm">// Submit data for evaluation → returns unique submission ID</span>
-  <span class="kw">function</span> <span class="fn">submit</span>(<span class="ty">bytes calldata</span> data) <span class="kw">external</span> <span class="kw">returns</span> (<span class="ty">bytes32</span>);
-
-  <span class="cm">// Evaluator renders a verdict on a submission</span>
-  <span class="kw">function</span> <span class="fn">resolve</span>(<span class="ty">bytes32</span> submissionId, <span class="ty">uint8</span> verdict, <span class="ty">bytes calldata</span> data) <span class="kw">external</span>;
-
-  <span class="cm">// Views</span>
-  <span class="kw">function</span> <span class="fn">status</span>() <span class="kw">external view returns</span> (<span class="ty">uint8</span>);
-  <span class="kw">function</span> <span class="fn">evaluator</span>() <span class="kw">external view returns</span> (<span class="ty">address</span>);
-  <span class="kw">function</span> <span class="fn">depositor</span>() <span class="kw">external view returns</span> (<span class="ty">address</span>);
-  <span class="kw">function</span> <span class="fn">escrowToken</span>() <span class="kw">external view returns</span> (<span class="ty">address</span>);
-  <span class="kw">function</span> <span class="fn">escrowBalance</span>() <span class="kw">external view returns</span> (<span class="ty">uint256</span>);
-}</pre>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px">
+        <div>
+          <h4 style="font-size:15px;font-weight:600;margin-bottom:8px">Three roles</h4>
+          <ul style="list-style:none;font-size:15px;color:var(--muted);line-height:2">
+            <li><strong style="color:var(--dark)">Client</strong> — creates job, funds escrow</li>
+            <li><strong style="color:var(--dark)">Provider</strong> — does the work, submits deliverable</li>
+            <li><strong style="color:var(--dark)">Evaluator</strong> — attests completion or rejection</li>
+          </ul>
+        </div>
+        <div>
+          <h4 style="font-size:15px;font-weight:600;margin-bottom:8px">Six states</h4>
+          <ul style="list-style:none;font-size:15px;color:var(--muted);line-height:2">
+            <li><code>Open</code> → <code>Funded</code> → <code>Submitted</code></li>
+            <li>→ <code style="color:var(--green)">Completed</code> (payment released)</li>
+            <li>→ <code style="color:#dc2626">Rejected</code> (refund to client)</li>
+            <li>→ <code style="color:var(--amber)">Expired</code> (timeout refund)</li>
+          </ul>
+        </div>
       </div>
-      <p style="color:var(--muted); font-size: 15px;">
-        Three operations. Five views. That's the entire standard. Everything else is an extension.
-      </p>
+
+      <div class="code-block">
+<pre><span class="cm">// ERC-8183 core functions</span>
+<span class="fn">createJob</span>(provider, evaluator, expiredAt, description, hook)
+<span class="fn">setProvider</span>(jobId, provider, optParams)    <span class="cm">// client assigns worker</span>
+<span class="fn">setBudget</span>(jobId, amount, optParams)        <span class="cm">// client or provider negotiates</span>
+<span class="fn">fund</span>(jobId, expectedBudget, optParams)     <span class="cm">// client escrows tokens</span>
+<span class="fn">submit</span>(jobId, deliverable, optParams)      <span class="cm">// provider submits work</span>
+<span class="fn">complete</span>(jobId, reason, optParams)          <span class="cm">// evaluator ✓ → pay provider</span>
+<span class="fn">reject</span>(jobId, reason, optParams)            <span class="cm">// evaluator ✗ → refund client</span>
+<span class="fn">claimRefund</span>(jobId)                          <span class="cm">// anyone, after expiry</span></pre>
+      </div>
+
+      <div class="notice notice-purple" style="margin-bottom:0">
+        <div class="icon">🔑</div>
+        <p>
+          <strong>The hooks system is the extension point.</strong>
+          Each job can have an <code>IACPHook</code> — a contract that receives
+          <code>beforeAction</code>/<code>afterAction</code> callbacks on every state transition.
+          Hooks can add validation, reputation updates, custom fee logic, or dispute resolution.
+          <code>claimRefund</code> is deliberately <em>not hookable</em> — safety guarantee.
+        </p>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- ═══ WHAT WE'RE LOOKING FOR ═══ -->
+<!-- ═══ THE GAP ═══ -->
 <section>
   <div class="container">
-    <span class="section-label">Evaluation criteria</span>
-    <h2>What your proposal must include</h2>
-    <p style="color:var(--muted); margin-bottom: 28px;">
-      The GenLayer AI jury evaluates every submission against these five criteria.
-      All five must pass for the bounty to be awarded.
+    <span class="label">The problem</span>
+    <h2>What ERC-8183 doesn't do</h2>
+    <p style="color:var(--muted);max-width:640px;margin-bottom:24px">
+      The spec explicitly states: <em>"No dispute resolution or arbitration; reject/expire is final."</em>
+      This is a deliberate design choice — keep the base minimal. But real commerce needs more nuance:
     </p>
-    <div class="criteria-grid">
-      <div class="criterion">
-        <div class="criterion-num">1</div>
-        <div>
-          <h4>Design memo</h4>
-          <p>A clear document stating the problem, your proposed extension architecture, rationale, and tradeoffs. Professional engineering quality.</p>
-        </div>
-      </div>
-      <div class="criterion">
-        <div class="criterion-num">2</div>
-        <div>
-          <h4>Architecture diagram</h4>
-          <p>A visual overview showing how your extension relates to the ERC-8183 base. Contracts, components, data flow. ASCII, Mermaid, or image — all count.</p>
-        </div>
-      </div>
-      <div class="criterion">
-        <div class="criterion-num">3</div>
-        <div>
-          <h4>Judgment model</h4>
-          <p>How evaluator verdicts map to outcomes. Must support at least: partial payout, full refund, penalty, or resubmission. Go beyond binary accept/reject.</p>
-        </div>
-      </div>
-      <div class="criterion">
-        <div class="criterion-num">4</div>
-        <div>
-          <h4>Concrete example flow</h4>
-          <p>An end-to-end walkthrough with specific values — amounts, addresses, timestamps. Show each step from deposit through at least one non-trivial resolution.</p>
-        </div>
-      </div>
-      <div class="criterion">
-        <div class="criterion-num">5</div>
-        <div>
-          <h4>ERC-8183 preservation</h4>
-          <p>Your extension must NOT modify <code>IERC8183</code> itself. Layer on top via inheritance, composition, or wrapping. Existing ERC-8183 contracts must remain valid.</p>
-        </div>
-      </div>
+    <div style="max-width:640px">
+      <div class="arrow-item"><span>→</span><p><strong>Binary outcomes.</strong> <code>complete()</code> or <code>reject()</code> — nothing in between. A job that's 80% done gets the same treatment as one that's 0% done.</p></div>
+      <div class="arrow-item"><span>→</span><p><strong>No partial payouts.</strong> Late delivery, partial completion, quality tiers — the spec has no mechanism for graduated fund distribution.</p></div>
+      <div class="arrow-item"><span>→</span><p><strong>No resubmission.</strong> A rejected provider can't fix and resubmit. The job is dead. A new job must be created from scratch.</p></div>
+      <div class="arrow-item"><span>→</span><p><strong>No dispute escalation.</strong> If the provider disagrees with the evaluator's rejection, there's no appeal path. The evaluator has absolute power once the job is Submitted.</p></div>
+      <div class="arrow-item"><span>→</span><p><strong>No AI adjudication.</strong> The evaluator is a single address. It could be an AI-powered contract — but the spec doesn't define how AI evaluation integrates with the lifecycle.</p></div>
+    </div>
+    <p style="color:var(--muted);margin-top:24px;font-size:15px;max-width:640px">
+      We've built graduated penalty models in the
+      <a href="https://acastellana.github.io/conditional-payment-cross-border-trade/" target="_blank">Conditional Payment</a>
+      demo — 6 verdict tiers, 50–150bps penalties, return-proof evaluation — all powered by GenLayer AI juries.
+      The question is: <strong>how should this be standardized as a reusable hook extension to ERC-8183?</strong>
+    </p>
+  </div>
+</section>
+
+<!-- ═══ CRITERIA ═══ -->
+<section>
+  <div class="container">
+    <span class="label">Evaluation criteria</span>
+    <h2>What your proposal must include</h2>
+    <p style="color:var(--muted);margin-bottom:28px">
+      The GenLayer AI jury evaluates every submission against five criteria.
+      All five must pass for <code>complete()</code> to be called.
+    </p>
+    <div class="criteria">
+      <div class="crit"><div class="crit-n">1</div><div><h4>Design memo</h4><p>Identify the specific limitations of ERC-8183's binary model. Propose a concrete extension using hooks and/or evaluator contracts. Explain how GenLayer AI adjudication integrates with the job lifecycle. Discuss tradeoffs.</p></div></div>
+      <div class="crit"><div class="crit-n">2</div><div><h4>Architecture diagram</h4><p>Show AgenticCommerce as the base layer. Show how IACPHook and/or evaluator contracts extend it. Show the GenLayer bridge path. Identify which components live on which chain.</p></div></div>
+      <div class="crit"><div class="crit-n">3</div><div><h4>Judgment model</h4><p>Go beyond binary complete/reject. Support at least two of: partial payout, penalty tiers, refund with deduction, resubmission. Define verdict codes and fund distribution rules within ERC-8183's state machine.</p></div></div>
+      <div class="crit"><div class="crit-n">4</div><div><h4>Concrete example flow</h4><p>End-to-end walkthrough with specific values: token amounts, job IDs, timestamps. Show each ERC-8183 function call in sequence. Demonstrate a non-trivial outcome. Show the GenLayer AI jury step.</p></div></div>
+      <div class="crit"><div class="crit-n">5</div><div><h4>ERC-8183 compatibility</h4><p>Do NOT modify AgenticCommerce or IERC8183. Use hooks and/or custom evaluator contracts. Existing jobs without hooks must continue unchanged. The extension is opt-in per job.</p></div></div>
     </div>
   </div>
 </section>
@@ -276,46 +244,40 @@
 <!-- ═══ HOW IT WORKS ═══ -->
 <section>
   <div class="container">
-    <span class="section-label">Bounty lifecycle</span>
+    <span class="label">Bounty lifecycle</span>
     <h2>How this bounty works</h2>
-    <div class="flow-steps">
-      <div class="flow-step">
-        <div class="flow-icon">💰</div>
-        <div class="flow-content">
-          <h4>Sponsor deposits prize</h4>
-          <p>50,000 PEN tokens locked in the BountyEscrow8183 contract via <code>deposit()</code>. Funds are held on-chain until a winning submission or expiry.</p>
-        </div>
-      </div>
-      <div class="flow-step">
-        <div class="flow-icon">📄</div>
-        <div class="flow-content">
-          <h4>Participant submits a proposal</h4>
-          <p>Call <code>submit()</code> with your proposal URL. This creates a submission record on-chain and emits an <code>EvaluationRequested</code> event.</p>
-          <span class="mono-sm">submit(abi.encode("https://github.com/you/erc8183-extension"))</span>
-        </div>
-      </div>
-      <div class="flow-step">
-        <div class="flow-icon">🧠</div>
-        <div class="flow-content">
-          <h4>GenLayer AI jury evaluates</h4>
-          <p>The relay picks up the event and deploys a <code>ProposalEvaluator</code> contract on GenLayer. Multiple AI validators independently fetch your proposal, evaluate it against the five criteria, and reach consensus.</p>
-        </div>
-      </div>
-      <div class="flow-step">
-        <div class="flow-icon">⚖️</div>
-        <div class="flow-content">
-          <h4>Verdict delivered via bridge</h4>
-          <p>The GenLayer verdict (ACCEPT or REJECT) is encoded and sent through LayerZero back to Base Sepolia. The InternetCourtFactory delivers it to the bounty contract via <code>resolve()</code>.</p>
-        </div>
-      </div>
-      <div class="flow-step">
-        <div class="flow-icon">🏆</div>
-        <div class="flow-content">
-          <h4>Prize released or bounty stays open</h4>
-          <p><strong>ACCEPT →</strong> The full 50,000 PEN prize transfers to the submitter's address automatically.<br/>
-          <strong>REJECT →</strong> The bounty remains open. You receive specific feedback from the jury and can resubmit an improved proposal.</p>
-        </div>
-      </div>
+    <p style="color:var(--muted);margin-bottom:28px">
+      This bounty is itself an ERC-8183 job. The full lifecycle follows the spec exactly.
+    </p>
+    <div class="flow">
+      <div class="step"><div class="step-icon">📝</div><div class="step-body">
+        <h4>Job created (Open)</h4>
+        <p>Client calls <code>createJob(provider=0, evaluator=GenLayerEvaluator, hook=CourtAwareHook)</code>. Provider is open — anyone can claim it.</p>
+      </div></div>
+      <div class="step"><div class="step-icon">🙋</div><div class="step-body">
+        <h4>Provider assigned</h4>
+        <p>When you want to submit, the client calls <code>setProvider(jobId, yourAddress)</code> to assign you. Then <code>fund(jobId, budget)</code> escrows the 50,000 PEN prize.</p>
+        <span class="mono-box">Open → Funded</span>
+      </div></div>
+      <div class="step"><div class="step-icon">📄</div><div class="step-body">
+        <h4>Register + Submit</h4>
+        <p>You call <code>registerProposal(jobId, url, title)</code> on the CourtAwareHook (metadata), then <code>submit(jobId, keccak256(url))</code> on AgenticCommerce.</p>
+        <span class="mono-box">Funded → Submitted</span>
+      </div></div>
+      <div class="step"><div class="step-icon">🧠</div><div class="step-body">
+        <h4>GenLayer AI jury evaluates</h4>
+        <p>The relay deploys a <code>ProposalEvaluator</code> on GenLayer. Multiple AI validators independently fetch your proposal, evaluate against the five criteria, and reach consensus.</p>
+      </div></div>
+      <div class="step"><div class="step-icon">⚖️</div><div class="step-body">
+        <h4>Verdict delivered via bridge</h4>
+        <p>The GenLayer verdict is bridged via LayerZero to the <code>GenLayerEvaluator</code> contract on Base Sepolia. It calls either <code>complete()</code> or <code>reject()</code> on the job.</p>
+      </div></div>
+      <div class="step"><div class="step-icon">🏆</div><div class="step-body">
+        <h4>Outcome</h4>
+        <p><strong>ACCEPT →</strong> <code>complete()</code>: 50,000 PEN released to your address.<br/>
+        <strong>REJECT →</strong> <code>reject()</code>: escrow refunded to client. New job created for next attempt.</p>
+        <span class="mono-box">Submitted → Completed | Rejected</span>
+      </div></div>
     </div>
   </div>
 </section>
@@ -323,169 +285,105 @@
 <!-- ═══ ARCHITECTURE ═══ -->
 <section>
   <div class="container">
-    <span class="section-label">System architecture</span>
+    <span class="label">System architecture</span>
     <h2>End-to-end flow</h2>
-    <div class="arch-diagram">
+    <div class="arch">
 <pre>
-<span class="layer-label">BASE SEPOLIA (L1)</span>                          <span class="layer-label">GENLAYER (AI CHAIN)</span>
+<span class="l">BASE SEPOLIA</span>                                    <span class="l">GENLAYER STUDIONET</span>
 
-┌──────────────────────┐
-│   <span class="comp">BountyEscrow8183</span>   │
-│   implements IERC8183│
-│                      │                    ┌──────────────────────┐
-│  <span class="highlight">deposit()</span>  ← sponsor│                    │  <span class="comp">ProposalEvaluator</span>   │
-│  <span class="highlight">submit()</span>  ← anyone │──<span class="arrow">── event ──→</span> relay ──→│  (GenLayer contract)  │
-│  <span class="highlight">resolve()</span> ← factory│                    │                      │
-│                      │                    │  • fetches proposal  │
-└──────────┬───────────┘                    │  • AI jury evaluates │
-           │                                │  • multi-LLM consensus│
-           │                                │                      │
-┌──────────▼───────────┐                    └──────────┬───────────┘
-│ <span class="comp">InternetCourtFactory</span> │                               │
-│ (verdict dispatcher) │◀──<span class="arrow">── LayerZero bridge ──</span>──────┘
-└──────────────────────┘
-           │
-           ▼
-   <span class="highlight">resolveFromCourt()</span>
-   verdict → fund release
+┌────────────────────────────┐
+│  <span class="c">AgenticCommerce</span> (ERC-8183) │
+│                            │
+│  <span class="h">createJob()</span>  ← client      │
+│  <span class="h">setProvider()</span> ← client     │
+│  <span class="h">setBudget()</span>  ← client/prov │
+│  <span class="h">fund()</span>       ← client      │                ┌─────────────────────┐
+│  <span class="h">submit()</span>     ← provider    │<span class="a">── event ──→</span> relay │ <span class="c">ProposalEvaluator</span>   │
+│  <span class="h">complete()</span>   ← evaluator   │                │ (GenLayer contract) │
+│  <span class="h">reject()</span>     ← evaluator   │                │                     │
+│                            │                │ • fetch proposal URL│
+│  hook: <span class="c">CourtAwareHook</span>      │                │ • AI jury evaluates │
+│    beforeAction / afterAction               │ • 5-criteria rubric │
+└─────────────┬──────────────┘                │ • multi-LLM vote   │
+              │                               └──────────┬──────────┘
+┌─────────────▼──────────────┐                           │
+│  <span class="c">GenLayerEvaluator</span>          │                           │
+│  (evaluator contract)      │◀<span class="a">── LayerZero bridge ──────</span>┘
+│                            │
+│  <span class="h">deliverVerdict()</span>           │
+│    → complete() or reject()│
+└────────────────────────────┘
 </pre>
     </div>
-    <p style="color:var(--muted); font-size: 15px;">
-      The same cross-chain architecture used by the
-      <a href="https://acastellana.github.io/conditional-payment-cross-border-trade/">Conditional Payment</a>
-      project — proven across 6 live scenarios on Base Sepolia + GenLayer Studionet.
-    </p>
   </div>
 </section>
 
 <!-- ═══ ON-CHAIN CONTRACTS ═══ -->
 <section>
   <div class="container">
-    <span class="section-label">Deployed contracts</span>
+    <span class="label">Deployed contracts</span>
     <h2>On-chain infrastructure</h2>
-    <table class="contracts-table">
-      <thead>
-        <tr>
-          <th>Contract</th>
-          <th>Network</th>
-          <th>Address</th>
-        </tr>
-      </thead>
+    <table class="t">
+      <thead><tr><th>Contract</th><th>Network</th><th>Address</th></tr></thead>
       <tbody>
-        <tr>
-          <td>BountyEscrow8183</td>
-          <td>Base Sepolia</td>
-          <td class="addr" id="bounty-addr"><a href="https://sepolia.basescan.org/address/0x0ee284054841fc6e60d2e2047e1e0f88ae02fe16" target="_blank">0x0ee2…fe16</a></td>
-        </tr>
-        <tr>
-          <td>MockPEN (prize token)</td>
-          <td>Base Sepolia</td>
-          <td class="addr"><a href="https://sepolia.basescan.org/address/0x08bc87f6511913caa4e127c5e4e91618a37a9719" target="_blank">0x08bc…9719</a></td>
-        </tr>
-        <tr>
-          <td>InternetCourtFactory</td>
-          <td>Base Sepolia</td>
-          <td class="addr"><a href="https://sepolia.basescan.org/address/0xd533cB0B52E85b3F506b6f0c28b8f6bc4E449Dda" target="_blank">0xd533…9Dda</a></td>
-        </tr>
-        <tr>
-          <td>ProposalEvaluator</td>
-          <td>GenLayer Studionet</td>
-          <td class="addr"><em>Deployed per submission</em></td>
-        </tr>
+        <tr><td>AgenticCommerce</td><td>Base Sepolia</td><td class="addr"><a href="https://sepolia.basescan.org/address/0x45f0a7987fa2e83aa20425863482d9b2a3560d21" target="_blank">0x45f0…0d21</a></td></tr>
+        <tr><td>GenLayerEvaluator</td><td>Base Sepolia</td><td class="addr"><a href="https://sepolia.basescan.org/address/0xaf1b4ab035e36b1e8f6194543ecc78cfdbd11f04" target="_blank">0xaf1b…1f04</a></td></tr>
+        <tr><td>CourtAwareHook</td><td>Base Sepolia</td><td class="addr"><a href="https://sepolia.basescan.org/address/0xb0ccec14e35c5c14a497b67438900d9e27d45387" target="_blank">0xb0cc…5387</a></td></tr>
+        <tr><td>MockPEN (prize)</td><td>Base Sepolia</td><td class="addr"><a href="https://sepolia.basescan.org/address/0x08bc87f6511913caa4e127c5e4e91618a37a9719" target="_blank">0x08bc…9719</a></td></tr>
+        <tr><td>ProposalEvaluator</td><td>GenLayer Studionet</td><td class="addr"><em>Deployed per submission</em></td></tr>
       </tbody>
     </table>
-    <p style="color:var(--muted); font-size: 15px; margin-top: 12px;">
-      The IERC8183 interface is defined in
-      <a href="https://github.com/acastellana/erc8183-bounty/blob/main/sol/src/IERC8183.sol" target="_blank">IERC8183.sol</a>.
-      The bounty contract source is
-      <a href="https://github.com/acastellana/erc8183-bounty/blob/main/sol/src/BountyEscrow8183.sol" target="_blank">BountyEscrow8183.sol</a>.
-      The GenLayer evaluator is
-      <a href="https://github.com/acastellana/erc8183-bounty/blob/main/contracts/ProposalEvaluator.py" target="_blank">ProposalEvaluator.py</a>.
+    <p style="color:var(--muted);font-size:15px;margin-top:12px">
+      Source: <a href="https://github.com/acastellana/erc8183-bounty" target="_blank">github.com/acastellana/erc8183-bounty</a>.
+      Interface: <a href="https://github.com/acastellana/erc8183-bounty/blob/main/sol/src/IERC8183.sol" target="_blank">IERC8183.sol</a> ·
+      Implementation: <a href="https://github.com/acastellana/erc8183-bounty/blob/main/sol/src/AgenticCommerce.sol" target="_blank">AgenticCommerce.sol</a> ·
+      Evaluator: <a href="https://github.com/acastellana/erc8183-bounty/blob/main/sol/src/GenLayerEvaluator.sol" target="_blank">GenLayerEvaluator.sol</a> ·
+      Hook: <a href="https://github.com/acastellana/erc8183-bounty/blob/main/sol/src/CourtAwareHook.sol" target="_blank">CourtAwareHook.sol</a>
     </p>
   </div>
 </section>
 
 <!-- ═══ SUBMIT ═══ -->
-<section class="submit-section">
+<section class="dark-section">
   <div class="container">
-    <span class="section-label">Participate</span>
+    <span class="label">Participate</span>
     <h2>How to submit a proposal</h2>
-    <p style="max-width: 560px; margin-bottom: 0;">
-      Prepare your proposal, publish it at a URL the AI jury can fetch, and submit it on-chain.
+    <p style="max-width:560px">
+      Prepare your proposal covering all five criteria, publish it, and interact with the on-chain contracts.
     </p>
-    <div class="submit-box">
-      <ul class="submit-steps">
-        <li>Write your proposal covering all five criteria (design memo, architecture, judgment model, example flow, ERC-8183 preservation)</li>
-        <li>Publish it at a publicly accessible URL — a GitHub repository, HackMD doc, or hosted page</li>
-        <li>Call <code>submit(abi.encode(proposalUrl))</code> on the BountyEscrow8183 contract on Base Sepolia</li>
-        <li>The relay detects the <code>EvaluationRequested</code> event and deploys a ProposalEvaluator on GenLayer</li>
-        <li>Wait for the AI jury verdict. If ACCEPT: prize transfers to your address. If REJECT: review the feedback and resubmit</li>
+    <div class="dark-box">
+      <ul>
+        <li>Write your proposal addressing the five evaluation criteria (design memo, architecture, judgment model, example flow, ERC-8183 compatibility)</li>
+        <li>Publish at a publicly accessible URL — GitHub repo, HackMD, or hosted page</li>
+        <li>Contact us to be assigned as provider on the job via <code>setProvider()</code></li>
+        <li>Once funded, call <code>registerProposal(jobId, url, title)</code> on the CourtAwareHook</li>
+        <li>Call <code>submit(jobId, keccak256(url), "0x")</code> on AgenticCommerce</li>
+        <li>Wait for the GenLayer AI jury verdict — ACCEPT releases the prize, REJECT provides detailed feedback</li>
       </ul>
     </div>
-    <p style="margin-top: 24px; font-size: 15px; color: rgba(255,255,255,0.5);">
-      Need testnet ETH for Base Sepolia? Use the <a href="https://www.alchemy.com/faucets/base-sepolia" target="_blank" style="color: var(--purple);">Alchemy faucet</a>.
-      The bounty contract handles ERC-20 token distribution — you only need gas for the <code>submit()</code> transaction.
+    <p style="margin-top:24px;font-size:15px;color:rgba(255,255,255,.5)">
+      Testnet ETH: <a href="https://www.alchemy.com/faucets/base-sepolia" target="_blank" style="color:var(--purple)">Alchemy faucet</a>.
+      Job ID: <code>0</code> on AgenticCommerce at <code>0x45f0…0d21</code>.
     </p>
   </div>
 </section>
 
-<!-- ═══ WHY THIS MATTERS ═══ -->
-<section>
-  <div class="container">
-    <span class="section-label">Context</span>
-    <h2>Why extend ERC-8183?</h2>
-    <p style="color:var(--muted); max-width: 640px; margin-bottom: 24px;">
-      The base primitive — escrow + evaluate + resolve — handles binary outcomes well.
-      But real commerce needs more nuance:
-    </p>
-    <div style="display: grid; gap: 12px; max-width: 640px;">
-      <div style="display:flex;gap:12px;align-items:flex-start;">
-        <span style="color:var(--purple);font-weight:700;font-size:18px;">→</span>
-        <p style="font-size:16px;"><strong>Partial payouts.</strong> A shipment arrives 3 days late — not a total failure, but not on time. The penalty should be proportional.</p>
-      </div>
-      <div style="display:flex;gap:12px;align-items:flex-start;">
-        <span style="color:var(--purple);font-weight:700;font-size:18px;">→</span>
-        <p style="font-size:16px;"><strong>Graduated penalties.</strong> Different delay buckets map to different penalty tiers — 50bps, 100bps, 150bps — not all-or-nothing.</p>
-      </div>
-      <div style="display:flex;gap:12px;align-items:flex-start;">
-        <span style="color:var(--purple);font-weight:700;font-size:18px;">→</span>
-        <p style="font-size:16px;"><strong>Return & resubmission.</strong> When goods are rejected, the return proof itself needs evaluation before any refund.</p>
-      </div>
-      <div style="display:flex;gap:12px;align-items:flex-start;">
-        <span style="color:var(--purple);font-weight:700;font-size:18px;">→</span>
-        <p style="font-size:16px;"><strong>Multi-stage adjudication.</strong> Some disputes need sequential evaluation phases — initial verdict, appeal window, final resolution.</p>
-      </div>
-    </div>
-    <p style="color:var(--muted); margin-top: 24px; font-size: 15px; max-width: 640px;">
-      We've built this exact pattern in the
-      <a href="https://acastellana.github.io/conditional-payment-cross-border-trade/">Conditional Payment</a>
-      demo — 6 graduated verdicts, penalty tiers from 50–150bps, a return-proof timeout mechanism,
-      all evaluated by GenLayer AI juries. The question is: how should this be standardized as a
-      reusable extension to ERC-8183?
-    </p>
-  </div>
-</section>
-
-<!-- ═══ FOOTER ═══ -->
 <footer>
   <div class="container">
     <div class="footer-inner">
       <span>ERC-8183 Bounty · Powered by <a href="https://genlayer.com" target="_blank">GenLayer</a></span>
       <div class="footer-links">
+        <a href="https://eips.ethereum.org/EIPS/eip-8183" target="_blank">ERC-8183 Spec</a>
         <a href="https://acastellana.github.io/conditional-payment-cross-border-trade/" target="_blank">Conditional Payment Demo</a>
         <a href="https://docs.genlayer.com" target="_blank">GenLayer Docs</a>
-        <a href="https://sepolia.basescan.org" target="_blank">Base Sepolia Explorer</a>
       </div>
     </div>
   </div>
 </footer>
 
 <script>
-// Set deadline display
-const deadlineDays = 30;
-const deadlineDate = new Date(Date.now() + deadlineDays * 86400000);
-document.getElementById('deadline-date').textContent = deadlineDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+const d = new Date(Date.now() + 30*864e5);
+document.getElementById('deadline-date').textContent = d.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
 </script>
-
 </body>
 </html>

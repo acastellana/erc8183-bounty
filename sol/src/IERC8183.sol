@@ -2,71 +2,66 @@
 pragma solidity ^0.8.20;
 
 /**
- * @title IERC8183 — Minimal Escrow & Evaluator Primitive
- * @notice A standard interface for contracts that lock value and release it
- *         based on the verdict of an external evaluator (oracle).
+ * @title IERC8183 — Agentic Commerce Protocol
+ * @notice ERC-8183: Job escrow with evaluator attestation for agent commerce.
  *
- * ERC-8183 deliberately stays minimal:
- *   • One depositor locks funds for a specific purpose.
- *   • One evaluator (oracle) is trusted to render a verdict.
- *   • The contract maps verdicts → fund distribution.
+ * A job has escrowed budget, four active states (Open → Funded → Submitted → Terminal),
+ * and an evaluator who alone may mark the job completed or rejected after submission.
  *
- * Extensions (partial payout, penalty tiers, resubmission, multi-party)
- * are intentionally out of scope and should be layered on top.
+ * Ref: https://eips.ethereum.org/EIPS/eip-8183
  */
+
+/// @notice Hook interface for extending ERC-8183 jobs.
+interface IACPHook {
+    function beforeAction(uint256 jobId, bytes4 selector, bytes calldata data) external;
+    function afterAction(uint256 jobId, bytes4 selector, bytes calldata data) external;
+}
+
 interface IERC8183 {
-    // ─── Lifecycle statuses ──────────────────────────────────────────────────
-    // Implementations MUST support at least these four states.
-    // Additional states (e.g., Expired, Cancelled) are allowed.
-    //
-    //   Open       → funds deposited, awaiting evaluation trigger
-    //   Evaluating → evaluation in progress (oracle working)
-    //   Resolved   → verdict rendered, funds distributed
-    //   Expired    → deadline passed with no resolution
+    // ─── Enums ────────────────────────────────────────────────────────────────
+    enum Status { Open, Funded, Submitted, Completed, Rejected, Expired }
 
-    // ─── Events ──────────────────────────────────────────────────────────────
+    // ─── Events ───────────────────────────────────────────────────────────────
+    event JobCreated(uint256 indexed jobId, address indexed client, address provider, address evaluator, uint256 expiredAt);
+    event ProviderSet(uint256 indexed jobId, address indexed provider);
+    event BudgetSet(uint256 indexed jobId, uint256 amount);
+    event JobFunded(uint256 indexed jobId, address indexed client, uint256 amount);
+    event JobSubmitted(uint256 indexed jobId, address indexed provider, bytes32 deliverable);
+    event JobCompleted(uint256 indexed jobId, address indexed evaluator, bytes32 reason);
+    event JobRejected(uint256 indexed jobId, address indexed rejector, bytes32 reason);
+    event JobExpired(uint256 indexed jobId);
+    event PaymentReleased(uint256 indexed jobId, address indexed provider, uint256 amount);
+    event Refunded(uint256 indexed jobId, address indexed client, uint256 amount);
 
-    /// @notice Emitted when funds are deposited into escrow.
-    event Deposited(address indexed depositor, address indexed token, uint256 amount);
+    // ─── Core Functions ───────────────────────────────────────────────────────
 
-    /// @notice Emitted when evaluation is requested for a submission.
-    event EvaluationRequested(bytes32 indexed submissionId, address indexed submitter, bytes data);
+    /// @notice Create a job. Provider MAY be zero (set later via setProvider).
+    function createJob(
+        address provider,
+        address evaluator,
+        uint256 expiredAt,
+        string calldata description,
+        address hook
+    ) external returns (uint256 jobId);
 
-    /// @notice Emitted when the evaluator renders a verdict.
-    event Resolved(bytes32 indexed submissionId, uint8 verdict, bytes resolutionData);
+    /// @notice Set provider on a job created with provider=0. Client only.
+    function setProvider(uint256 jobId, address provider, bytes calldata optParams) external;
 
-    // ─── Core operations ─────────────────────────────────────────────────────
+    /// @notice Set or negotiate budget. Client or provider.
+    function setBudget(uint256 jobId, uint256 amount, bytes calldata optParams) external;
 
-    /// @notice Deposit funds into escrow. May be called once or incrementally.
-    /// @param token ERC-20 token address (address(0) for native ETH).
-    /// @param amount Amount to deposit (ignored if msg.value > 0 for ETH).
-    function deposit(address token, uint256 amount) external payable;
+    /// @notice Fund the job escrow. Client only. Moves Open → Funded.
+    function fund(uint256 jobId, uint256 expectedBudget, bytes calldata optParams) external;
 
-    /// @notice Submit data for evaluation. Returns a unique submission ID.
-    /// @param data ABI-encoded submission payload (format is application-specific).
-    /// @return submissionId Unique identifier for this submission.
-    function submit(bytes calldata data) external returns (bytes32 submissionId);
+    /// @notice Submit deliverable. Provider only. Moves Funded → Submitted.
+    function submit(uint256 jobId, bytes32 deliverable, bytes calldata optParams) external;
 
-    /// @notice Called by the evaluator to render a verdict on a submission.
-    /// @param submissionId The submission being resolved.
-    /// @param verdict Application-specific verdict code (0 = undetermined).
-    /// @param resolutionData ABI-encoded resolution details.
-    function resolve(bytes32 submissionId, uint8 verdict, bytes calldata resolutionData) external;
+    /// @notice Complete job. Evaluator only when Submitted. Releases escrow to provider.
+    function complete(uint256 jobId, bytes32 reason, bytes calldata optParams) external;
 
-    // ─── Views ───────────────────────────────────────────────────────────────
+    /// @notice Reject job. Client when Open; evaluator when Funded or Submitted. Refunds client.
+    function reject(uint256 jobId, bytes32 reason, bytes calldata optParams) external;
 
-    /// @notice Returns the contract's current lifecycle status.
-    function status() external view returns (uint8);
-
-    /// @notice Returns the address authorized to call resolve().
-    function evaluator() external view returns (address);
-
-    /// @notice Returns the address that deposited funds.
-    function depositor() external view returns (address);
-
-    /// @notice Returns the escrow token address (address(0) for ETH).
-    function escrowToken() external view returns (address);
-
-    /// @notice Returns the current escrow balance.
-    function escrowBalance() external view returns (uint256);
+    /// @notice Claim refund after expiry. Anyone may call.
+    function claimRefund(uint256 jobId) external;
 }

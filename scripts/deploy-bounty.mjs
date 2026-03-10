@@ -1,22 +1,19 @@
 #!/usr/bin/env node
 /**
- * deploy-bounty.mjs
+ * deploy-bounty.mjs — Deploy the ERC-8183 bounty system on Base Sepolia.
  *
- * Deploys the BountyEscrow8183 contract on Base Sepolia and funds it with
- * MockPEN tokens as the bounty prize.
- *
- * Steps:
- *   1. Build Solidity contracts via Forge
- *   2. Deploy BountyEscrow8183
- *   3. Deposit prize tokens
- *   4. Save deployment artifacts
+ * Deploys:
+ *   1. AgenticCommerce (ERC-8183 implementation)
+ *   2. GenLayerEvaluator (evaluator that bridges to GenLayer)
+ *   3. CourtAwareHook (reference hook for the bounty)
+ *   4. Creates and funds the bounty job
  *
  * Usage: node scripts/deploy-bounty.mjs
  */
 
 import {
   createPublicClient, createWalletClient, http,
-  parseUnits, parseAbi, formatUnits, getAddress
+  parseUnits, parseAbi, formatUnits, getAddress, encodePacked, keccak256, toBytes
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { baseSepolia } from "viem/chains";
@@ -27,14 +24,12 @@ import { fileURLToPath } from "url";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const ROOT  = join(__dir, "..");
-const TRADE_ROOT = join(ROOT, "..", "conditional-payment-cross-border-trade");
 const RPC   = "https://sepolia.base.org";
 const FORGE = `${process.env.HOME}/.foundry/bin/forge`;
 
-// ── Known addresses (reuse from conditional-payment project) ──────────────────
-const MOCK_PEN        = "0x08bc87f6511913caa4e127c5e4e91618a37a9719";
-const COURT_FACTORY   = "0xd533cB0B52E85b3F506b6f0c28b8f6bc4E449Dda";
-const EXPORTER        = "0xe9630ba0e3cc2d3BFC58fbE1Bbde478f06E4CE87"; // bounty depositor
+// ── Known addresses ──────────────────────────────────────────────────────────
+const MOCK_PEN       = "0x08bc87f6511913caa4e127c5e4e91618a37a9719";
+const COURT_FACTORY  = "0xd533cB0B52E85b3F506b6f0c28b8f6bc4E449Dda";
 
 // ── Keys ─────────────────────────────────────────────────────────────────────
 function loadKey(path) {
@@ -47,7 +42,7 @@ const exporterAcct = privateKeyToAccount(EXPORTER_KEY);
 
 const transport = http(RPC);
 const pub = createPublicClient({ chain: baseSepolia, transport });
-const exporterW = createWalletClient({ chain: baseSepolia, transport, account: exporterAcct });
+const wallet = createWalletClient({ chain: baseSepolia, transport, account: exporterAcct });
 
 // ── ABIs ──────────────────────────────────────────────────────────────────────
 const ERC20_ABI = parseAbi([
@@ -57,57 +52,101 @@ const ERC20_ABI = parseAbi([
 ]);
 
 // ── Bounty parameters ─────────────────────────────────────────────────────────
-const BOUNTY_TITLE       = "ERC-8183 Court-Aware Extension";
-const BOUNTY_DESCRIPTION = "Design a court-aware extension layer for ERC-8183 that preserves the minimal escrow+evaluator primitive while enabling partial payouts, penalties, refunds, and resubmission through GenLayer AI adjudication.";
-const CRITERIA_URL       = "ipfs://bounty-criteria-v1"; // Will update after IPFS pin
-const PRIZE_AMOUNT       = parseUnits("50000", 18);     // 50,000 PEN
-const DEADLINE_DAYS      = 30;
-const DEADLINE           = Math.floor(Date.now() / 1000) + DEADLINE_DAYS * 86400;
+const PRIZE_AMOUNT = parseUnits("50000", 18);     // 50,000 PEN
+const DEADLINE_DAYS = 30;
+const DEADLINE = Math.floor(Date.now() / 1000) + DEADLINE_DAYS * 86400;
+const JOB_DESCRIPTION = "ERC-8183 Court-Aware Extension Bounty: Design a court-aware extension for the Agentic Commerce Protocol that preserves the minimal escrow+evaluator primitive while enabling partial payouts, graduated penalties, refund windows, and resubmission through GenLayer AI adjudication. Deliverable: design memo, architecture diagram, judgment model, and concrete example flow.";
+
+async function deployContract(name, args = []) {
+  const artifact = JSON.parse(readFileSync(
+    `${ROOT}/sol/out/${name}.sol/${name}.json`, "utf8"
+  ));
+
+  console.log(`  Deploying ${name}...`);
+  const hash = await wallet.deployContract({
+    abi: artifact.abi,
+    bytecode: artifact.bytecode.object,
+    args,
+  });
+
+  const receipt = await pub.waitForTransactionReceipt({ hash });
+  const addr = receipt.contractAddress;
+  console.log(`  ✓ ${name} at ${addr} (tx: ${hash.slice(0, 14)}…)`);
+  return { address: addr, abi: artifact.abi, hash };
+}
 
 async function main() {
-  console.log("═══ ERC-8183 Bounty Deployment ═══\n");
+  console.log("═══ ERC-8183 Bounty Deployment (v2 — Real Spec) ═══\n");
   console.log(`Deployer:  ${exporterAcct.address}`);
   console.log(`Network:   Base Sepolia`);
   console.log(`Prize:     ${formatUnits(PRIZE_AMOUNT, 18)} PEN`);
-  console.log(`Deadline:  ${new Date(DEADLINE * 1000).toISOString()}`);
-  console.log(`Evaluator: ${COURT_FACTORY} (InternetCourtFactory)\n`);
+  console.log(`Deadline:  ${new Date(DEADLINE * 1000).toISOString()}\n`);
 
   // Step 1: Build
   console.log("▸ Building contracts...");
   execSync(`${FORGE} build`, { cwd: `${ROOT}/sol`, stdio: "pipe" });
-  console.log("  ✓ Contracts compiled\n");
+  console.log("  ✓ Compiled\n");
 
-  // Step 2: Get bytecode
-  const artifact = JSON.parse(readFileSync(
-    `${ROOT}/sol/out/BountyEscrow8183.sol/BountyEscrow8183.json`, "utf8"
-  ));
-  const bytecode = artifact.bytecode.object;
+  // Step 2: Deploy AgenticCommerce
+  console.log("▸ Deploying ERC-8183 contracts...");
+  const commerce = await deployContract("AgenticCommerce", [
+    MOCK_PEN,                // paymentToken
+    exporterAcct.address,    // treasury (fee recipient)
+    0n,                      // feeBps (0 = no fee for bounty)
+  ]);
 
-  // Step 3: Deploy BountyEscrow8183
-  console.log("▸ Deploying BountyEscrow8183...");
+  // Step 3: Deploy GenLayerEvaluator
+  const evaluator = await deployContract("GenLayerEvaluator", [
+    commerce.address,        // agenticCommerce
+    COURT_FACTORY,           // courtRelay (IC factory delivers verdicts)
+  ]);
 
-  // Constructor: (evaluator, token, title, description, criteriaUrl, deadline)
-  const deployHash = await exporterW.deployContract({
-    abi: artifact.abi,
-    bytecode,
+  // Step 4: Deploy CourtAwareHook
+  const hook = await deployContract("CourtAwareHook", [
+    commerce.address,        // agenticCommerce
+  ]);
+
+  console.log();
+
+  // Step 5: Create the bounty job
+  console.log("▸ Creating bounty job...");
+  const createHash = await wallet.writeContract({
+    address: commerce.address,
+    abi: commerce.abi,
+    functionName: "createJob",
     args: [
-      COURT_FACTORY,    // evaluator (IC Factory delivers verdicts)
-      MOCK_PEN,         // ERC-20 token
-      BOUNTY_TITLE,
-      BOUNTY_DESCRIPTION,
-      CRITERIA_URL,
-      BigInt(DEADLINE),
+      "0x0000000000000000000000000000000000000000", // provider = open (set later)
+      evaluator.address,                             // evaluator = GenLayerEvaluator
+      BigInt(DEADLINE),                              // expiredAt
+      JOB_DESCRIPTION,                               // description
+      hook.address,                                  // hook = CourtAwareHook
     ],
   });
+  const createReceipt = await pub.waitForTransactionReceipt({ hash: createHash });
 
-  console.log(`  Deploy tx: ${deployHash}`);
-  const deployReceipt = await pub.waitForTransactionReceipt({ hash: deployHash });
-  const bountyAddress = deployReceipt.contractAddress;
-  console.log(`  ✓ BountyEscrow8183 deployed at: ${bountyAddress}\n`);
+  // Get jobId from logs
+  const jobCreatedTopic = keccak256(toBytes("JobCreated(uint256,address,address,address,uint256)"));
+  const jobLog = createReceipt.logs.find(l => l.topics[0] === jobCreatedTopic);
+  const jobId = jobLog ? BigInt(jobLog.topics[1]) : 0n;
+  console.log(`  ✓ Job created: jobId=${jobId} (tx: ${createHash.slice(0, 14)}…)\n`);
 
-  // Step 4: Mint PEN for prize (testnet)
+  // Step 6: Set budget
+  console.log("▸ Setting budget...");
+  const budgetHash = await wallet.writeContract({
+    address: commerce.address,
+    abi: commerce.abi,
+    functionName: "setBudget",
+    args: [jobId, PRIZE_AMOUNT, "0x"],
+  });
+  await pub.waitForTransactionReceipt({ hash: budgetHash });
+  console.log(`  ✓ Budget set to ${formatUnits(PRIZE_AMOUNT, 18)} PEN\n`);
+
+  // Note: funding happens after a provider is set (per ERC-8183 spec).
+  // For the bounty, the client will fund when a provider (submitter) is assigned.
+
+  // Step 7: Mint PEN for the prize pool
   console.log("▸ Minting prize tokens...");
-  const mintHash = await exporterW.writeContract({
+  const mintHash = await wallet.writeContract({
     address: MOCK_PEN,
     abi: ERC20_ABI,
     functionName: "mint",
@@ -116,58 +155,66 @@ async function main() {
   await pub.waitForTransactionReceipt({ hash: mintHash });
   console.log(`  ✓ Minted ${formatUnits(PRIZE_AMOUNT, 18)} PEN\n`);
 
-  // Step 5: Approve + Deposit
-  console.log("▸ Approving + depositing prize...");
-  const approveHash = await exporterW.writeContract({
+  // Step 8: Pre-approve AgenticCommerce to spend tokens (for when we fund)
+  console.log("▸ Pre-approving token spend...");
+  const approveHash = await wallet.writeContract({
     address: MOCK_PEN,
     abi: ERC20_ABI,
     functionName: "approve",
-    args: [bountyAddress, PRIZE_AMOUNT],
+    args: [commerce.address, PRIZE_AMOUNT],
   });
   await pub.waitForTransactionReceipt({ hash: approveHash });
+  console.log(`  ✓ Approved\n`);
 
-  // Deposit via IERC8183
-  const depositHash = await exporterW.writeContract({
-    address: bountyAddress,
-    abi: artifact.abi,
-    functionName: "deposit",
-    args: [MOCK_PEN, PRIZE_AMOUNT],
-  });
-  await pub.waitForTransactionReceipt({ hash: depositHash });
+  // Step 9: Also authorize evaluator as relay on GenLayerEvaluator
+  // (owner is already the deployer, so courtRelay = COURT_FACTORY is set)
 
-  // Verify balance
-  const balance = await pub.readContract({
-    address: bountyAddress,
-    abi: artifact.abi,
-    functionName: "escrowBalance",
-  });
-  console.log(`  ✓ Escrow balance: ${formatUnits(balance, 18)} PEN\n`);
-
-  // Step 6: Save artifacts
+  // Step 10: Save artifacts
   const artifacts = {
+    version: 2,
+    spec: "ERC-8183 (Agentic Commerce Protocol)",
     network: "base-sepolia",
     deployedAt: new Date().toISOString(),
-    bountyContract: bountyAddress,
-    token: MOCK_PEN,
-    prizeAmount: formatUnits(PRIZE_AMOUNT, 18),
-    deadline: new Date(DEADLINE * 1000).toISOString(),
-    deadlineUnix: DEADLINE,
-    evaluator: COURT_FACTORY,
-    depositor: exporterAcct.address,
-    title: BOUNTY_TITLE,
-    description: BOUNTY_DESCRIPTION,
+    contracts: {
+      agenticCommerce: commerce.address,
+      genLayerEvaluator: evaluator.address,
+      courtAwareHook: hook.address,
+      paymentToken: MOCK_PEN,
+      internetCourtFactory: COURT_FACTORY,
+    },
+    job: {
+      jobId: Number(jobId),
+      description: JOB_DESCRIPTION,
+      prizeAmount: formatUnits(PRIZE_AMOUNT, 18),
+      deadline: new Date(DEADLINE * 1000).toISOString(),
+      deadlineUnix: DEADLINE,
+      client: exporterAcct.address,
+      evaluator: evaluator.address,
+      hook: hook.address,
+      status: "Open (awaiting provider + funding)",
+    },
     txHashes: {
-      deploy: deployHash,
-      mint: mintHash,
-      approve: approveHash,
-      deposit: depositHash,
+      deployCommerce: commerce.hash,
+      deployEvaluator: evaluator.hash,
+      deployHook: hook.hash,
+      createJob: createHash,
+      setBudget: budgetHash,
+      mintPrize: mintHash,
+      approvePrize: approveHash,
     },
   };
 
   mkdirSync(`${ROOT}/artifacts`, { recursive: true });
   writeFileSync(`${ROOT}/artifacts/bounty-deployment.json`, JSON.stringify(artifacts, null, 2));
-  console.log("═══ Deployment Complete ═══");
+
+  console.log("═══ Deployment Complete ═══\n");
   console.log(JSON.stringify(artifacts, null, 2));
+  console.log("\n📋 Next steps:");
+  console.log("  1. When a provider (submitter) appears, call setProvider(jobId, providerAddr)");
+  console.log("  2. Then call fund(jobId, budget) to escrow the tokens");
+  console.log("  3. Provider calls registerProposal() on hook, then submit() on AgenticCommerce");
+  console.log("  4. Relay deploys ProposalEvaluator on GenLayer");
+  console.log("  5. GenLayer verdict → bridge → GenLayerEvaluator → complete()/reject()");
 }
 
 main().catch(e => { console.error(e); process.exit(1); });
