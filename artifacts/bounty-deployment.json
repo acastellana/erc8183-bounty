@@ -5,10 +5,11 @@
   "deployedAt": "2026-03-10T06:59:00.000Z",
   "contracts": {
     "agenticCommerce": "0x45f0a7987fa2e83aa20425863482d9b2a3560d21",
-    "genLayerEvaluator": "0xaf1b4ab035e36b1e8f6194543ecc78cfdbd11f04",
+    "genLayerEvaluator": "0x2c5c7d5b78ffb1100abb5d560d867eb71e2753ad",
     "courtAwareHook": "0xb0ccec14e35c5c14a497b67438900d9e27d45387",
     "paymentToken": "0x08bc87f6511913caa4e127c5e4e91618a37a9719",
-    "internetCourtFactory": "0xd533cB0B52E85b3F506b6f0c28b8f6bc4E449Dda"
+    "internetCourtFactory": "0xd533cB0B52E85b3F506b6f0c28b8f6bc4E449Dda",
+    "genLayerEvaluatorV1": "0xaf1b4ab035e36b1e8f6194543ecc78cfdbd11f04"
   },
   "job": {
     "jobId": 0,
@@ -16,8 +17,9 @@
     "deadline": "2026-04-09T07:00:23.000Z",
     "deadlineUnix": 1744182023,
     "client": "0xe9630ba0e3cc2d3BFC58fbE1Bbde478f06E4CE87",
-    "evaluator": "0xaf1b4ab035e36b1e8f6194543ecc78cfdbd11f04",
+    "evaluator": "0x2c5c7d5b78ffb1100abb5d560d867eb71e2753ad",
     "hook": "0xb0ccec14e35c5c14a497b67438900d9e27d45387",
-    "status": "Open (budget set, tokens minted+approved, awaiting provider)"
+    "status": "Open (budget set, tokens minted+approved, awaiting provider)",
+    "evaluatorNote": "Dual-signal: AI jury + author endorsement"
   }
 }

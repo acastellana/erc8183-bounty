@@ -229,7 +229,7 @@
     <h2>What your proposal must include</h2>
     <p style="color:var(--muted);margin-bottom:28px">
       The GenLayer AI jury evaluates every submission against five criteria.
-      All five must pass for <code>complete()</code> to be called.
+      All six must pass for <code>complete()</code> to be called. The evaluator aggregates two GenLayer oracle signals — AI technical review + author endorsement verification.
     </p>
     <div class="criteria">
       <div class="crit"><div class="crit-n">1</div><div><h4>Design memo</h4><p>Identify the specific limitations of ERC-8183's binary model. Propose a concrete extension using hooks and/or evaluator contracts. Explain how GenLayer AI adjudication integrates with the job lifecycle. Discuss tradeoffs.</p></div></div>
@@ -237,6 +237,20 @@
       <div class="crit"><div class="crit-n">3</div><div><h4>Judgment model</h4><p>Go beyond binary complete/reject. Support at least two of: partial payout, penalty tiers, refund with deduction, resubmission. Define verdict codes and fund distribution rules within ERC-8183's state machine.</p></div></div>
       <div class="crit"><div class="crit-n">4</div><div><h4>Concrete example flow</h4><p>End-to-end walkthrough with specific values: token amounts, job IDs, timestamps. Show each ERC-8183 function call in sequence. Demonstrate a non-trivial outcome. Show the GenLayer AI jury step.</p></div></div>
       <div class="crit"><div class="crit-n">5</div><div><h4>ERC-8183 compatibility</h4><p>Do NOT modify AgenticCommerce or IERC8183. Use hooks and/or custom evaluator contracts. Existing jobs without hooks must continue unchanged. The extension is opt-in per job.</p></div></div>
+      <div class="crit" style="border:2px solid var(--purple)"><div class="crit-n" style="background:var(--dark)">6</div><div><h4>Author endorsement</h4><p>Post your proposal on the <a href="https://ethereum-magicians.org/t/erc-8183-agentic-commerce/27902" target="_blank">Ethereum Magicians ERC-8183 thread</a> and receive a positive reply from any of the original EIP authors: <strong>Davide Crapis</strong> (@dcrapis), <strong>Bryan Lim</strong> (@ai-virtual-b), <strong>Tay Weixiong</strong> (@twx-virtuals), or <strong>Chooi Zuhwa</strong> (@Zuhwa). A GenLayer oracle verifies the endorsement by fetching the thread.</p></div></div>
+    </div>
+
+    <div class="notice notice-purple" style="margin-top:24px">
+      <div class="icon">🧠</div>
+      <p>
+        <strong>Two-signal evaluation — no interface changes needed.</strong>
+        The evaluator contract aggregates two independent GenLayer oracle signals:
+        (1) AI jury on 5 technical criteria, and (2) forum endorsement verification.
+        The job stays in <code>Submitted</code> while signals arrive. Only when both
+        pass does <code>complete()</code> fire. If either rejects, <code>reject()</code>
+        fires immediately. This is itself a demonstration of how the evaluator contract
+        serves as the natural extension point for multi-stage evaluation within ERC-8183.
+      </p>
     </div>
   </div>
 </section>
@@ -289,30 +303,33 @@
     <h2>End-to-end flow</h2>
     <div class="arch">
 <pre>
-<span class="l">BASE SEPOLIA</span>                                    <span class="l">GENLAYER STUDIONET</span>
+<span class="l">BASE SEPOLIA</span>                                      <span class="l">GENLAYER STUDIONET</span>
 
-┌────────────────────────────┐
-│  <span class="c">AgenticCommerce</span> (ERC-8183) │
-│                            │
-│  <span class="h">createJob()</span>  ← client      │
-│  <span class="h">setProvider()</span> ← client     │
-│  <span class="h">setBudget()</span>  ← client/prov │
-│  <span class="h">fund()</span>       ← client      │                ┌─────────────────────┐
-│  <span class="h">submit()</span>     ← provider    │<span class="a">── event ──→</span> relay │ <span class="c">ProposalEvaluator</span>   │
-│  <span class="h">complete()</span>   ← evaluator   │                │ (GenLayer contract) │
-│  <span class="h">reject()</span>     ← evaluator   │                │                     │
-│                            │                │ • fetch proposal URL│
-│  hook: <span class="c">CourtAwareHook</span>      │                │ • AI jury evaluates │
-│    beforeAction / afterAction               │ • 5-criteria rubric │
-└─────────────┬──────────────┘                │ • multi-LLM vote   │
-              │                               └──────────┬──────────┘
-┌─────────────▼──────────────┐                           │
-│  <span class="c">GenLayerEvaluator</span>          │                           │
-│  (evaluator contract)      │◀<span class="a">── LayerZero bridge ──────</span>┘
-│                            │
-│  <span class="h">deliverVerdict()</span>           │
-│    → complete() or reject()│
-└────────────────────────────┘
+┌──────────────────────────────┐
+│  <span class="c">AgenticCommerce</span> (ERC-8183)   │
+│                              │                ┌───────────────────────┐
+│  <span class="h">createJob()</span>  ← client        │                │ <span class="c">Signal 1: AI Jury</span>     │
+│  <span class="h">setProvider()</span> ← client       │                │ <span class="c">ProposalEvaluator</span>     │
+│  <span class="h">setBudget()</span>  ← client/prov   │                │ • 5 technical criteria│
+│  <span class="h">fund()</span>       ← client        │                │ • multi-LLM consensus │
+│  <span class="h">submit()</span>     ← provider      │<span class="a">── event → relay ─┤</span>                       │
+│  <span class="h">complete()</span>   ← evaluator     │                └───────────┬───────────┘
+│  <span class="h">reject()</span>     ← evaluator     │                            │
+│                              │                ┌───────────┴───────────┐
+│  hook: <span class="c">CourtAwareHook</span>        │                │ <span class="c">Signal 2: Endorsement</span> │
+│    beforeAction / afterAction│                │ <span class="c">EndorsementVerifier</span>   │
+└───────────────┬──────────────┘                │ • fetch EM thread     │
+                │                               │ • find author reply   │
+┌───────────────▼──────────────┐                │ • @dcrapis @ai-virtual│
+│  <span class="c">GenLayerEvaluator</span>            │                │   @twx @Zuhwa         │
+│  (dual-signal aggregator)    │                └───────────┬───────────┘
+│                              │                            │
+│  <span class="h">deliverAIVerdict()</span>      ◀<span class="a">────── bridge signal 1 ─────</span>┘
+│  <span class="h">deliverEndorsement()</span>    ◀<span class="a">────── bridge signal 2 ─────</span>
+│                              │
+│  both ACCEPT → <span class="h">complete()</span>    │
+│  either REJECT → <span class="h">reject()</span>    │
+└──────────────────────────────┘
 </pre>
     </div>
   </div>
@@ -327,10 +344,11 @@
       <thead><tr><th>Contract</th><th>Network</th><th>Address</th></tr></thead>
       <tbody>
         <tr><td>AgenticCommerce</td><td>Base Sepolia</td><td class="addr"><a href="https://sepolia.basescan.org/address/0x45f0a7987fa2e83aa20425863482d9b2a3560d21" target="_blank">0x45f0…0d21</a></td></tr>
-        <tr><td>GenLayerEvaluator</td><td>Base Sepolia</td><td class="addr"><a href="https://sepolia.basescan.org/address/0xaf1b4ab035e36b1e8f6194543ecc78cfdbd11f04" target="_blank">0xaf1b…1f04</a></td></tr>
+        <tr><td>GenLayerEvaluator (v2, dual-signal)</td><td>Base Sepolia</td><td class="addr"><a href="https://sepolia.basescan.org/address/0x2c5c7d5b78ffb1100abb5d560d867eb71e2753ad" target="_blank">0x2c5c…53ad</a></td></tr>
         <tr><td>CourtAwareHook</td><td>Base Sepolia</td><td class="addr"><a href="https://sepolia.basescan.org/address/0xb0ccec14e35c5c14a497b67438900d9e27d45387" target="_blank">0xb0cc…5387</a></td></tr>
         <tr><td>MockPEN (prize)</td><td>Base Sepolia</td><td class="addr"><a href="https://sepolia.basescan.org/address/0x08bc87f6511913caa4e127c5e4e91618a37a9719" target="_blank">0x08bc…9719</a></td></tr>
-        <tr><td>ProposalEvaluator</td><td>GenLayer Studionet</td><td class="addr"><em>Deployed per submission</em></td></tr>
+        <tr><td>ProposalEvaluator (Signal 1)</td><td>GenLayer Studionet</td><td class="addr"><em>Deployed per submission</em></td></tr>
+        <tr><td>EndorsementVerifier (Signal 2)</td><td>GenLayer Studionet</td><td class="addr"><em>Deployed per submission</em></td></tr>
       </tbody>
     </table>
     <p style="color:var(--muted);font-size:15px;margin-top:12px">
@@ -353,8 +371,9 @@
     </p>
     <div class="dark-box">
       <ul>
-        <li>Write your proposal addressing the five evaluation criteria (design memo, architecture, judgment model, example flow, ERC-8183 compatibility)</li>
+        <li>Write your proposal addressing all six criteria (design memo, architecture, judgment model, example flow, ERC-8183 compatibility, author endorsement)</li>
         <li>Publish at a publicly accessible URL — GitHub repo, HackMD, or hosted page</li>
+        <li>Post your proposal on the <a href="https://ethereum-magicians.org/t/erc-8183-agentic-commerce/27902" target="_blank" style="color:var(--purple)">Ethereum Magicians ERC-8183 thread</a> and get a positive reply from any original author</li>
         <li>Contact us to be assigned as provider on the job via <code>setProvider()</code></li>
         <li>Once funded, call <code>registerProposal(jobId, url, title)</code> on the CourtAwareHook</li>
         <li>Call <code>submit(jobId, keccak256(url), "0x")</code> on AgenticCommerce</li>

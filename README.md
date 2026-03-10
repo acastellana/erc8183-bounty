@@ -39,18 +39,20 @@ The GenLayer AI jury evaluates submissions against five mandatory criteria:
 3. **Judgment model** — Graduated verdict codes with fund distribution rules
 4. **Concrete example flow** — End-to-end walkthrough with specific values and ERC-8183 function calls
 5. **ERC-8183 compatibility** — Extensions via hooks/evaluator contracts; core interface unchanged
+6. **Author endorsement** — Posted on [Ethereum Magicians ERC-8183 thread](https://ethereum-magicians.org/t/erc-8183-agentic-commerce/27902) with a positive reply from any original EIP author: Davide Crapis (@dcrapis), Bryan Lim (@ai-virtual-b), Tay Weixiong (@twx-virtuals), or Chooi Zuhwa (@Zuhwa)
 
-All five must pass for `complete()` to be called.
+All six must pass for `complete()` to be called. The evaluator aggregates two GenLayer oracle signals — AI technical review (criteria 1-5) + forum endorsement verification (criterion 6).
 
 ## Deployed Contracts
 
 | Contract | Network | Address |
 |----------|---------|---------|
 | AgenticCommerce | Base Sepolia | [`0x45f0…0d21`](https://sepolia.basescan.org/address/0x45f0a7987fa2e83aa20425863482d9b2a3560d21) |
-| GenLayerEvaluator | Base Sepolia | [`0xaf1b…1f04`](https://sepolia.basescan.org/address/0xaf1b4ab035e36b1e8f6194543ecc78cfdbd11f04) |
+| GenLayerEvaluator (v2, dual-signal) | Base Sepolia | [`0x2c5c…53ad`](https://sepolia.basescan.org/address/0x2c5c7d5b78ffb1100abb5d560d867eb71e2753ad) |
 | CourtAwareHook | Base Sepolia | [`0xb0cc…5387`](https://sepolia.basescan.org/address/0xb0ccec14e35c5c14a497b67438900d9e27d45387) |
 | MockPEN (prize) | Base Sepolia | [`0x08bc…9719`](https://sepolia.basescan.org/address/0x08bc87f6511913caa4e127c5e4e91618a37a9719) |
-| ProposalEvaluator | GenLayer Studionet | Deployed per submission |
+| ProposalEvaluator (Signal 1) | GenLayer Studionet | Deployed per submission |
+| EndorsementVerifier (Signal 2) | GenLayer Studionet | Deployed per submission |
 
 ## Architecture
 
