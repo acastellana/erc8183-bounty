@@ -208,8 +208,8 @@ async function processSubmission(jobId, deliverable) {
   console.log(`  proposalUrl: ${proposalUrl}`);
   console.log(`  title:       ${proposalTitle}`);
 
-  // Register evaluation on-chain
-  const evaluator = new ethers.Contract(C.genLayerEvaluator, EVALUATOR_ABI, baseSigner);
+  // Register evaluation on-chain (owner-only)
+  const evaluator = new ethers.Contract(C.genLayerEvaluator, EVALUATOR_ABI, ownerWallet);
   const regTx = await evaluator.registerEvaluation(jobId, deliverable);
   await regTx.wait();
   console.log(`  Registered evaluation: ${regTx.hash}`);
