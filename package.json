@@ -1,0 +1,13 @@
+{
+  "name": "erc8183-bounty",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "ERC-8183 Court-Aware Extension Bounty — powered by GenLayer",
+  "scripts": {
+    "build": "cd sol && forge build",
+    "deploy": "node scripts/deploy-bounty.mjs"
+  },
+  "dependencies": {
+    "viem": "^2.0.0"
+  }
+}
