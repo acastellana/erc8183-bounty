@@ -8,355 +8,975 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    :root{--bg:#fff;--card:#f8f8f6;--dark:#1a1817;--muted:#74706c;--border:#e8e6e3;--green:#15803d;--green-l:#dcfce7;--blue:#1d4ed8;--blue-l:#dbeafe;--amber:#b45309;--amber-l:#fef3c7;--purple:#7c3aed;--purple-l:#ede9fe;--r:12px;--r-xl:20px}
-    body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--dark);font-size:18px;line-height:1.65;-webkit-font-smoothing:antialiased}
-    .container{max-width:960px;margin:0 auto;padding:0 40px}
-    .label{font-family:'DM Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;display:block}
-    a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}
-    code,.mono{font-family:'DM Mono',monospace}
-    header{padding:28px 0;border-bottom:1px solid var(--border)}
-    .header-inner{display:flex;align-items:center;justify-content:space-between}
-    .logo{display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--dark);font-weight:700;font-size:15px}
-    .logo-chip{background:var(--dark);color:#fff;border-radius:6px;padding:2px 8px;font-size:11px;font-family:'DM Mono',monospace;font-weight:600}
-    .badge{display:inline-flex;align-items:center;gap:6px;border-radius:9999px;padding:4px 14px;font-size:12px;font-weight:600;font-family:'DM Mono',monospace}
-    .badge-live{background:var(--green-l);color:var(--green)}
-    .badge-live .dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
-    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
-    .hero{padding:80px 0 72px}
-    .hero-tag{display:inline-flex;align-items:center;gap:6px;background:var(--purple-l);border:1px solid var(--purple);border-radius:9999px;padding:4px 14px;font-size:12px;font-weight:600;color:var(--purple);font-family:'DM Mono',monospace;margin-bottom:28px}
-    .hero h1{font-size:clamp(32px,4.5vw,48px);font-weight:700;line-height:1.1;letter-spacing:-1.5px;max-width:720px;margin-bottom:28px}
-    .hero h1 em{font-style:normal;color:var(--purple)}
-    .hero-body{font-size:19px;color:var(--muted);line-height:1.75;max-width:600px;margin-bottom:36px}
-    .cards{display:flex;gap:24px;flex-wrap:wrap}
-    .card{flex:1;min-width:200px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:24px}
-    .card .val{font-size:28px;font-weight:700;letter-spacing:-.5px;margin-top:8px}
-    .card .sub{font-size:14px;color:var(--muted);margin-top:4px}
-    section{padding:80px 0;border-top:1px solid var(--border)}
-    section h2{font-size:clamp(24px,3.5vw,34px);font-weight:700;letter-spacing:-.7px;margin-bottom:32px}
-    section h3{font-size:20px;font-weight:600;margin:28px 0 12px}
-    .box{background:var(--card);border-radius:var(--r-xl);padding:40px;margin-bottom:0}
-    .code-block{background:var(--dark);color:#e8e6e3;border-radius:var(--r);padding:24px;font-size:14px;line-height:1.7;overflow-x:auto;font-family:'DM Mono',monospace}
-    .code-block .kw{color:#c084fc}.code-block .fn{color:#60a5fa}.code-block .ty{color:#4ade80}.code-block .cm{color:#6b7280}.code-block .st{color:#fbbf24}
-    .criteria{display:grid;gap:16px}
-    .crit{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:24px;display:flex;gap:16px;align-items:flex-start}
-    .crit-n{background:var(--purple);color:#fff;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0}
-    .crit h4{font-size:17px;font-weight:600;margin-bottom:6px}
-    .crit p{font-size:15px;color:var(--muted);line-height:1.6}
-    .flow{display:grid;gap:0;position:relative}
-    .step{display:grid;grid-template-columns:48px 1fr;gap:16px;padding-bottom:32px;position:relative}
-    .step:last-child{padding-bottom:0}
-    .step::before{content:'';position:absolute;left:23px;top:48px;bottom:0;width:2px;background:var(--border)}
-    .step:last-child::before{display:none}
-    .step-icon{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;background:var(--card);border:2px solid var(--border);position:relative;z-index:1}
-    .step-body h4{font-size:17px;font-weight:600;margin-bottom:4px;padding-top:12px}
-    .step-body p{font-size:15px;color:var(--muted);line-height:1.6}
-    .step-body .mono-box{font-family:'DM Mono',monospace;font-size:13px;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:12px 16px;margin-top:8px;display:block;color:var(--dark)}
-    .arch{background:var(--dark);border-radius:var(--r-xl);padding:40px;color:#e8e6e3;margin:24px 0}
-    .arch pre{font-family:'DM Mono',monospace;font-size:13px;line-height:1.6;overflow-x:auto;white-space:pre}
-    .arch .l{color:#c084fc}.arch .c{color:#60a5fa}.arch .a{color:#6b7280}.arch .h{color:#4ade80}
-    table.t{width:100%;border-collapse:collapse;margin:20px 0}
-    table.t th{font-family:'DM Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-align:left;padding:8px 16px;border-bottom:2px solid var(--border)}
-    table.t td{padding:12px 16px;border-bottom:1px solid var(--border);font-size:15px}
-    table.t td:first-child{font-weight:600}
-    .addr{font-family:'DM Mono',monospace;font-size:13px}
-    .dark-section{background:var(--dark);color:#fff;border-top:none}
-    .dark-section h2{color:#fff}.dark-section .label{color:rgba(255,255,255,.3)}.dark-section p{color:rgba(255,255,255,.7)}
-    .dark-box{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:var(--r-xl);padding:32px;margin-top:28px}
-    .dark-box ul{list-style:none}
-    .dark-box li{padding:8px 0;font-size:16px;color:rgba(255,255,255,.85);display:flex;gap:12px;align-items:flex-start}
-    .dark-box li::before{content:'→';color:var(--purple);font-weight:700;flex-shrink:0}
-    .dark-box code{background:rgba(255,255,255,.08);padding:2px 8px;border-radius:4px;font-size:14px}
-    .notice{border-radius:var(--r);padding:20px 24px;margin:32px 0;display:flex;gap:12px;align-items:flex-start}
-    .notice .icon{font-size:22px;flex-shrink:0}
-    .notice p{font-size:15px;line-height:1.6}
-    .notice-amber{background:var(--amber-l);border:1px solid var(--amber)}.notice-amber strong{color:var(--amber)}
-    .notice-purple{background:var(--purple-l);border:1px solid var(--purple)}.notice-purple strong{color:var(--purple)}
-    .arrow-item{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px}
-    .arrow-item span{color:var(--purple);font-weight:700;font-size:18px}
-    .arrow-item p{font-size:16px}
-    footer{padding:40px 0;border-top:1px solid var(--border)}
-    .footer-inner{display:flex;justify-content:space-between;align-items:center;font-size:14px;color:var(--muted);flex-wrap:wrap;gap:16px}
-    .footer-links{display:flex;gap:24px}.footer-links a{color:var(--muted);font-size:14px}.footer-links a:hover{color:var(--dark)}
-    @media(max-width:640px){.container{padding:0 20px}.hero{padding:48px 0 40px}.cards{flex-direction:column}.box,.arch,.dark-box{padding:24px}}
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --paper: #f9f7f2;
+      --ink: #1a1812;
+      --ink-light: #4a4640;
+      --ink-faint: #8a8680;
+      --rule: #d8d4cd;
+      --accent: #1a4a6b;
+      --accent-light: #e8f0f6;
+      --font-serif: 'Crimson Pro', Georgia, 'Times New Roman', serif;
+      --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
+      --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+    }
+
+    html {
+      font-size: 18px;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--paper);
+      color: var(--ink);
+      line-height: 1.8;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    /* ── Layout ── */
+    .paper {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 40px;
+    }
+
+    /* ── Horizontal rules ── */
+    .section-rule {
+      border: none;
+      border-top: 1px solid var(--rule);
+      margin: 56px 0;
+    }
+
+    /* ── Header / masthead ── */
+    .masthead {
+      padding: 48px 0 0;
+      text-align: center;
+    }
+
+    .masthead-status {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      border: 1px solid var(--rule);
+      padding: 3px 12px;
+      border-radius: 2px;
+      margin-bottom: 28px;
+    }
+
+    .paper-title {
+      font-family: var(--font-serif);
+      font-size: clamp(28px, 4vw, 42px);
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.3px;
+      color: var(--ink);
+      margin-bottom: 20px;
+    }
+
+    .paper-byline {
+      font-family: var(--font-sans);
+      font-size: 15px;
+      color: var(--ink-light);
+      margin-bottom: 8px;
+    }
+
+    .paper-meta {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--ink-faint);
+      margin-bottom: 12px;
+    }
+
+    .masthead-rule {
+      border: none;
+      border-top: 2px solid var(--ink);
+      margin: 36px 0 0;
+    }
+
+    /* ── Abstract ── */
+    .abstract-block {
+      padding: 40px 0 0;
+    }
+
+    .abstract-heading {
+      font-family: var(--font-sans);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .abstract-body {
+      font-family: var(--font-serif);
+      font-size: 18px;
+      line-height: 1.85;
+      color: var(--ink);
+    }
+
+    .abstract-body p + p {
+      margin-top: 1.2em;
+    }
+
+    /* Drop cap on first paragraph */
+    .abstract-body p:first-of-type::first-letter {
+      font-family: var(--font-serif);
+      font-size: 4.2em;
+      font-weight: 700;
+      line-height: 0.8;
+      float: left;
+      margin-right: 0.06em;
+      margin-top: 0.08em;
+      color: var(--ink);
+    }
+
+    /* ── Section structure ── */
+    .section {
+      padding: 48px 0 0;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .section-num {
+      font-family: var(--font-serif);
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .section-title {
+      font-family: var(--font-serif);
+      font-size: clamp(20px, 2.5vw, 26px);
+      font-weight: 700;
+      line-height: 1.2;
+      color: var(--ink);
+    }
+
+    /* ── Body text ── */
+    p {
+      font-size: 16px;
+      line-height: 1.8;
+      color: var(--ink-light);
+    }
+
+    p strong {
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    em {
+      font-style: italic;
+    }
+
+    /* ── Links ── */
+    a {
+      color: var(--accent);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(26, 74, 107, 0.3);
+    }
+
+    a:hover {
+      border-bottom-color: var(--accent);
+    }
+
+    /* ── Subsection headings ── */
+    h3.subsec {
+      font-family: var(--font-serif);
+      font-size: 19px;
+      font-weight: 600;
+      color: var(--ink);
+      margin: 36px 0 12px;
+    }
+
+    /* ── Code and mono ── */
+    code {
+      font-family: var(--font-mono);
+      font-size: 0.85em;
+      background: rgba(0,0,0,0.05);
+      padding: 1px 5px;
+      border-radius: 2px;
+      color: var(--ink);
+    }
+
+    /* ── Code listing ── */
+    .listing {
+      margin: 28px 0;
+    }
+
+    .listing-caption {
+      font-family: var(--font-sans);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      margin-bottom: 8px;
+    }
+
+    .listing pre {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.65;
+      background: #1e1c18;
+      color: #d8d4cc;
+      padding: 24px 28px;
+      border-radius: 2px;
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    .listing pre .kw { color: #c084fc; }
+    .listing pre .fn { color: #7dd3fc; }
+    .listing pre .cm { color: #6b7280; font-style: italic; }
+
+    /* ── Block quote / callout ── */
+    blockquote.callout {
+      border-left: 3px solid var(--accent);
+      padding: 2px 0 2px 20px;
+      margin: 24px 0;
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 17px;
+      color: var(--ink-light);
+      line-height: 1.7;
+    }
+
+    blockquote.callout strong {
+      font-style: normal;
+      color: var(--ink);
+    }
+
+    /* dogfood notice */
+    .notice-block {
+      border-left: 3px solid var(--rule);
+      padding: 16px 20px;
+      margin: 32px 0;
+      background: rgba(0,0,0,0.025);
+    }
+
+    .notice-block p {
+      font-size: 15px;
+      font-style: italic;
+      color: var(--ink-light);
+      line-height: 1.7;
+    }
+
+    .notice-block p strong {
+      font-style: normal;
+    }
+
+    /* ── Definition/arrow list ── */
+    .def-list {
+      list-style: none;
+      margin: 20px 0;
+    }
+
+    .def-list li {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--rule);
+      font-size: 15.5px;
+      line-height: 1.7;
+      color: var(--ink-light);
+    }
+
+    .def-list li:last-child {
+      border-bottom: none;
+    }
+
+    .def-list li .arrow {
+      color: var(--accent);
+      font-weight: 600;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* ── Numbered criteria ── */
+    .criteria-list {
+      list-style: none;
+      margin: 20px 0;
+      counter-reset: crit;
+    }
+
+    .criteria-list li {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      padding: 20px 0;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .criteria-list li:last-child {
+      border-bottom: none;
+    }
+
+    .crit-num {
+      font-family: var(--font-serif);
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--accent);
+      min-width: 24px;
+      flex-shrink: 0;
+      line-height: 1.4;
+    }
+
+    .crit-body h4 {
+      font-family: var(--font-sans);
+      font-size: 15.5px;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 5px;
+    }
+
+    .crit-body p {
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--ink-light);
+    }
+
+    /* ── Pipeline status table ── */
+    .status-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 15px;
+    }
+
+    .status-table th {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      text-align: left;
+      padding: 8px 12px;
+      border-bottom: 2px solid var(--ink);
+    }
+
+    .status-table td {
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--rule);
+      vertical-align: top;
+      line-height: 1.5;
+      color: var(--ink-light);
+    }
+
+    .status-table td:first-child {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--ink);
+      white-space: nowrap;
+    }
+
+    .status-accept {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--ink);
+      letter-spacing: 0.05em;
+    }
+
+    .status-reject {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--ink-light);
+      letter-spacing: 0.05em;
+    }
+
+    /* Pipeline steps — simple numbered flow */
+    .pipeline-steps {
+      list-style: none;
+      margin: 20px 0;
+      counter-reset: step;
+    }
+
+    .pipeline-steps li {
+      counter-increment: step;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--rule);
+      font-size: 15.5px;
+      color: var(--ink-light);
+      line-height: 1.65;
+    }
+
+    .pipeline-steps li:last-child {
+      border-bottom: none;
+    }
+
+    .pipeline-steps li::before {
+      content: counter(step) ".";
+      font-family: var(--font-serif);
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--accent);
+      flex-shrink: 0;
+      min-width: 22px;
+    }
+
+    /* ── Lifecycle numbered list ── */
+    .lifecycle-list {
+      list-style: none;
+      margin: 20px 0;
+      counter-reset: lc;
+    }
+
+    .lifecycle-list li {
+      counter-increment: lc;
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      padding: 18px 0;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .lifecycle-list li:last-child {
+      border-bottom: none;
+    }
+
+    .lc-num {
+      font-family: var(--font-serif);
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--accent);
+      min-width: 20px;
+      flex-shrink: 0;
+      line-height: 1.5;
+    }
+
+    .lc-body dt {
+      font-family: var(--font-sans);
+      font-size: 15.5px;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 4px;
+    }
+
+    .lc-body dd {
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--ink-light);
+    }
+
+    .state-flow {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--ink-faint);
+      margin-top: 6px;
+      display: block;
+    }
+
+    /* ── Figure / Architecture ── */
+    figure.arch-figure {
+      margin: 28px 0;
+      border: 1px solid var(--rule);
+    }
+
+    figure.arch-figure pre {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      line-height: 1.55;
+      background: #1a1812;
+      color: #c8c4bc;
+      padding: 28px 32px;
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    figure.arch-figure pre .l { color: #c084fc; }
+    figure.arch-figure pre .c { color: #7dd3fc; }
+    figure.arch-figure pre .a { color: #6b7280; }
+    figure.arch-figure pre .h { color: #86efac; }
+
+    figcaption {
+      font-family: var(--font-sans);
+      font-size: 13px;
+      color: var(--ink-faint);
+      padding: 10px 16px;
+      border-top: 1px solid var(--rule);
+      background: rgba(0,0,0,0.025);
+      line-height: 1.5;
+    }
+
+    figcaption strong {
+      color: var(--ink-light);
+    }
+
+    /* ── Contracts table ── */
+    table.contracts {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 14px;
+    }
+
+    table.contracts th {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      text-align: left;
+      padding: 8px 10px;
+      border-bottom: 2px solid var(--ink);
+    }
+
+    table.contracts td {
+      padding: 10px 10px;
+      border-bottom: 1px solid var(--rule);
+      line-height: 1.5;
+      color: var(--ink-light);
+      vertical-align: top;
+    }
+
+    table.contracts td:first-child {
+      font-weight: 600;
+      color: var(--ink);
+      white-space: nowrap;
+    }
+
+    table.contracts td:nth-child(2) {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .addr-link {
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+
+    /* ── Submit / how-to list ── */
+    .submit-list {
+      list-style: none;
+      margin: 20px 0;
+      counter-reset: sub;
+    }
+
+    .submit-list li {
+      counter-increment: sub;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--rule);
+      font-size: 15.5px;
+      color: var(--ink-light);
+      line-height: 1.65;
+    }
+
+    .submit-list li:last-child {
+      border-bottom: none;
+    }
+
+    .submit-list li::before {
+      content: counter(sub) ".";
+      font-family: var(--font-serif);
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--accent);
+      flex-shrink: 0;
+      min-width: 22px;
+    }
+
+    /* ── References ── */
+    .references {
+      padding: 40px 0 0;
+    }
+
+    .references-heading {
+      font-family: var(--font-serif);
+      font-size: 19px;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 16px;
+    }
+
+    .ref-list {
+      list-style: none;
+      counter-reset: ref;
+    }
+
+    .ref-list li {
+      counter-increment: ref;
+      display: flex;
+      gap: 14px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--rule);
+      font-size: 14px;
+      color: var(--ink-light);
+      line-height: 1.6;
+    }
+
+    .ref-list li:last-child {
+      border-bottom: none;
+    }
+
+    .ref-list li::before {
+      content: "[" counter(ref) "]";
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--ink-faint);
+      flex-shrink: 0;
+      min-width: 30px;
+      padding-top: 2px;
+    }
+
+    /* ── Footer ── */
+    footer {
+      margin-top: 56px;
+      padding: 28px 0 48px;
+      border-top: 1px solid var(--rule);
+    }
+
+    .footer-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 13px;
+      color: var(--ink-faint);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 20px;
+    }
+
+    .footer-links a {
+      color: var(--ink-faint);
+      border-bottom: none;
+      font-size: 13px;
+    }
+
+    .footer-links a:hover {
+      color: var(--accent);
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      .paper {
+        padding: 0 20px;
+      }
+
+      .paper-title {
+        font-size: 26px;
+      }
+
+      .abstract-body p:first-of-type::first-letter {
+        font-size: 3.4em;
+      }
+
+      figure.arch-figure pre {
+        font-size: 10px;
+        padding: 20px 16px;
+      }
+
+      .listing pre {
+        font-size: 11.5px;
+        padding: 18px 16px;
+      }
+
+      table.contracts {
+        font-size: 12px;
+      }
+
+      table.contracts th,
+      table.contracts td {
+        padding: 8px 6px;
+      }
+
+      .footer-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
   </style>
 </head>
 <body>
 
-<header>
-  <div class="container">
-    <div class="header-inner">
-      <a href="#" class="logo">ERC-8183 <span class="logo-chip">BOUNTY</span></a>
-      <span class="badge badge-live"><span class="dot"></span> Live on Base Sepolia</span>
+<div class="paper">
+
+  <!-- ═══ TITLE BLOCK ═══ -->
+  <div class="masthead">
+    <div class="masthead-status">Live on Base Sepolia · Open Bounty</div>
+    <h1 class="paper-title">ERC-8183 Court-Aware Extension Bounty</h1>
+    <p class="paper-byline">by Albert Castellana &middot; March 2026</p>
+    <p class="paper-meta">Base Sepolia &middot; GenLayer Studionet &middot; 5,000 USDC Prize &middot; 30-day window</p>
+    <hr class="masthead-rule" />
+  </div>
+
+  <!-- ═══ ABSTRACT ═══ -->
+  <div class="abstract-block">
+    <div class="abstract-heading">Abstract</div>
+    <div class="abstract-body">
+      <p>ERC-8183 defines a minimal job escrow with evaluator attestation for AI agent commerce: three roles, six states, and an optional hooks system for extensibility. The standard is deliberately minimal — reject and expire are final, and no dispute resolution is defined. This bounty offers 5,000 USDC, held in an actual ERC-8183 job escrow on Base Sepolia, for the best proposal extending the protocol with court-aware dispute resolution via GenLayer AI adjudication.</p>
+      <p>Specifically, we seek proposals that go beyond ERC-8183's binary complete/reject model to support partial payouts, graduated penalties, resubmission windows, and multi-round evaluation — all implemented through the protocol's hooks system without modifying the base contracts. The evaluator is a GenLayer AI jury: multiple independent LLM validators reach consensus on each submission, and the verdict is bridged back to Base Sepolia via LayerZero to trigger the final job outcome.</p>
+      <p>The bounty itself is structured as an ERC-8183 job and evaluated by the very pattern it asks you to extend — a live demonstration of AI-adjudicated agentic commerce. Evaluation requires passing five technical criteria and receiving a positive endorsement from an original ERC-8183 author on the Ethereum Magicians forum.</p>
     </div>
   </div>
-</header>
 
-<!-- ═══ HERO ═══ -->
-<div class="hero">
-  <div class="container">
-    <div class="hero-tag">🏛️ Open bounty · GenLayer AI evaluation</div>
-    <h1>Design a <em>court-aware</em> extension for the Agentic Commerce&nbsp;Protocol</h1>
-    <p class="hero-body">
-      ERC-8183 defines a minimal job escrow with evaluator attestation — but it has
-      no dispute resolution. <em>Reject/expire is final.</em> We're looking for
-      proposals that add GenLayer AI adjudication: partial payouts, graduated penalties,
-      resubmission windows, and multi-round evaluation — all through the hooks system.
-    </p>
-    <div class="cards">
-      <div class="card">
-        <span class="label">Prize pool</span>
-        <div class="val">5,000 USDC</div>
-        <div class="sub">Held in ERC-8183 job escrow on Base Sepolia</div>
-      </div>
-      <div class="card">
-        <span class="label">Deadline</span>
-        <div class="val">30 days</div>
-        <div class="sub" id="deadline-date"></div>
-      </div>
-      <div class="card">
-        <span class="label">Evaluator</span>
-        <div class="val" style="font-size:20px">GenLayer AI&nbsp;Jury</div>
-        <div class="sub">Multi-LLM consensus via GenLayerEvaluator</div>
-      </div>
+  <hr class="section-rule" />
+
+  <!-- ═══ §1 BACKGROUND ═══ -->
+  <div class="section" id="background">
+    <div class="section-header">
+      <span class="section-num">§1</span>
+      <h2 class="section-title">Background: ERC-8183</h2>
     </div>
-  </div>
-</div>
 
-<!-- ═══ PIPELINE STATUS ═══ -->
-<section id="status" style="border-top:none;padding-top:48px;padding-bottom:48px">
-  <div class="container">
-    <span class="label">Pipeline status</span>
-    <h2>End-to-end verified ✓</h2>
-    <p style="color:var(--muted);max-width:640px;margin-bottom:28px">
-      The full evaluation pipeline has been tested and verified on-chain. GenLayer AI jury
-      reaches consensus, verdicts bridge back to Base Sepolia, and the evaluator contract
-      delivers the outcome to the job.
-    </p>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px">
-      <div style="background:var(--green-l);border:1px solid var(--green);border-radius:var(--r);padding:20px">
-        <div style="font-family:'DM Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--green);margin-bottom:8px">Signal 1 · AI Jury</div>
-        <div style="font-size:24px;font-weight:700;color:var(--green)">ACCEPTED ✓</div>
-        <div style="font-size:14px;color:var(--muted);margin-top:6px">5 LLM validators reached consensus in ~180s</div>
-        <div style="margin-top:8px"><a href="https://sepolia.basescan.org/tx/0x98915e0e15e1b7cdff0c66d3d62010736d29f4d63a8e0f7fa5a2e279b589039f" target="_blank" style="font-family:'DM Mono',monospace;font-size:12px">Verdict tx →</a></div>
-      </div>
-      <div style="background:var(--amber-l);border:1px solid var(--amber);border-radius:var(--r);padding:20px">
-        <div style="font-family:'DM Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--amber);margin-bottom:8px">Signal 2 · Endorsement</div>
-        <div style="font-size:24px;font-weight:700;color:var(--amber)">REJECT ✗</div>
-        <div style="font-size:14px;color:var(--muted);margin-top:6px">No author endorsement found yet (expected)</div>
-        <div style="margin-top:8px"><a href="https://sepolia.basescan.org/tx/0xb2bdab72d1652efab8884c6eab5eaea7f35ec63a645f4697fe656d24fc178be1" target="_blank" style="font-family:'DM Mono',monospace;font-size:12px">Verdict tx →</a></div>
-      </div>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
-      <div style="text-align:center;padding:16px;background:var(--card);border:1px solid var(--border);border-radius:var(--r)">
-        <div style="font-size:24px;margin-bottom:4px">📝</div>
-        <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--green);font-weight:600">DEPLOYED</div>
-        <div style="font-size:13px;color:var(--muted);margin-top:4px">Base contracts</div>
-      </div>
-      <div style="text-align:center;padding:16px;background:var(--card);border:1px solid var(--border);border-radius:var(--r)">
-        <div style="font-size:24px;margin-bottom:4px">🧠</div>
-        <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--green);font-weight:600">CONSENSUS</div>
-        <div style="font-size:13px;color:var(--muted);margin-top:4px">GenLayer oracles</div>
-      </div>
-      <div style="text-align:center;padding:16px;background:var(--card);border:1px solid var(--border);border-radius:var(--r)">
-        <div style="font-size:24px;margin-bottom:4px">🌉</div>
-        <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--green);font-weight:600">BRIDGED</div>
-        <div style="font-size:13px;color:var(--muted);margin-top:4px">LayerZero relay</div>
-      </div>
-      <div style="text-align:center;padding:16px;background:var(--card);border:1px solid var(--border);border-radius:var(--r)">
-        <div style="font-size:24px;margin-bottom:4px">⚖️</div>
-        <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--green);font-weight:600">DELIVERED</div>
-        <div style="font-size:13px;color:var(--muted);margin-top:4px">Verdict on-chain</div>
-      </div>
-    </div>
-    <p style="font-size:14px;color:var(--muted);margin-top:16px;text-align:center">
-      GenLayer contracts: <code>ProposalEvaluator v0.8.0</code> + <code>EndorsementVerifier v0.7.0</code> ·
-      Pattern: <code>gl.vm.run_nondet</code> (custom leader/validator) ·
-      11/11 direct-mode tests passing
-    </p>
-  </div>
-</section>
+    <p>ERC-8183, the <em>Agentic Commerce Protocol</em>, defines a job escrow with evaluator attestation for AI agent-to-agent commerce. The standard specifies three roles: a <strong>Client</strong> who creates the job and funds the escrow; a <strong>Provider</strong> who performs the work and submits a deliverable; and an <strong>Evaluator</strong> who attests completion or rejection. Jobs progress through six states: <code>Open</code>, <code>Funded</code>, <code>Submitted</code>, <code>Completed</code>, <code>Rejected</code>, and <code>Expired</code>.</p>
 
-<div class="container">
-  <div class="notice notice-amber">
-    <div class="icon">🐕</div>
-    <p>
-      <strong>This bounty eats its own dogfood.</strong> The prize is an actual ERC-8183 job —
-      <code>createJob()</code> with a GenLayer evaluator and a CourtAwareHook. When you submit a proposal,
-      the AI jury evaluates it on GenLayer and delivers the verdict back via LayerZero bridge to
-      call <code>complete()</code> or <code>reject()</code> on the job. The bounty itself demonstrates
-      the pattern you're being asked to extend.
-    </p>
-  </div>
-</div>
+    <p>The core interface surfaces eight functions covering the full job lifecycle. An optional <code>IACPHook</code> system provides the primary extension mechanism: each job may designate a hook contract that receives <code>beforeAction</code> and <code>afterAction</code> callbacks on every state transition, enabling validation logic, reputation updates, custom fee models, or dispute resolution — all without modifying the base protocol. The <code>claimRefund</code> function is deliberately not hookable as a safety guarantee.</p>
 
-<!-- ═══ WHAT IS ERC-8183 ═══ -->
-<section>
-  <div class="container">
-    <span class="label">The standard</span>
-    <h2>What is ERC-8183?</h2>
-    <div class="box">
-      <h3 style="margin-top:0">Agentic Commerce Protocol</h3>
-      <p style="color:var(--muted);margin-bottom:20px">
-        ERC-8183 defines a <strong>job escrow with evaluator attestation</strong> for AI agent commerce.
-        Three roles, six states, and an optional hooks system for extensibility.
-        <a href="https://eips.ethereum.org/EIPS/eip-8183" target="_blank">Read the full EIP →</a>
-      </p>
-
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px">
-        <div>
-          <h4 style="font-size:15px;font-weight:600;margin-bottom:8px">Three roles</h4>
-          <ul style="list-style:none;font-size:15px;color:var(--muted);line-height:2">
-            <li><strong style="color:var(--dark)">Client</strong> — creates job, funds escrow</li>
-            <li><strong style="color:var(--dark)">Provider</strong> — does the work, submits deliverable</li>
-            <li><strong style="color:var(--dark)">Evaluator</strong> — attests completion or rejection</li>
-          </ul>
-        </div>
-        <div>
-          <h4 style="font-size:15px;font-weight:600;margin-bottom:8px">Six states</h4>
-          <ul style="list-style:none;font-size:15px;color:var(--muted);line-height:2">
-            <li><code>Open</code> → <code>Funded</code> → <code>Submitted</code></li>
-            <li>→ <code style="color:var(--green)">Completed</code> (payment released)</li>
-            <li>→ <code style="color:#dc2626">Rejected</code> (refund to client)</li>
-            <li>→ <code style="color:var(--amber)">Expired</code> (timeout refund)</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="code-block">
-<pre><span class="cm">// ERC-8183 core functions</span>
+    <div class="listing">
+      <div class="listing-caption">Listing 1: ERC-8183 Core Interface</div>
+      <pre><span class="cm">// ERC-8183 core functions</span>
 <span class="fn">createJob</span>(provider, evaluator, expiredAt, description, hook)
 <span class="fn">setProvider</span>(jobId, provider, optParams)    <span class="cm">// client assigns worker</span>
 <span class="fn">setBudget</span>(jobId, amount, optParams)        <span class="cm">// client or provider negotiates</span>
 <span class="fn">fund</span>(jobId, expectedBudget, optParams)     <span class="cm">// client escrows tokens</span>
 <span class="fn">submit</span>(jobId, deliverable, optParams)      <span class="cm">// provider submits work</span>
-<span class="fn">complete</span>(jobId, reason, optParams)          <span class="cm">// evaluator ✓ → pay provider</span>
-<span class="fn">reject</span>(jobId, reason, optParams)            <span class="cm">// evaluator ✗ → refund client</span>
-<span class="fn">claimRefund</span>(jobId)                          <span class="cm">// anyone, after expiry</span></pre>
-      </div>
+<span class="fn">complete</span>(jobId, reason, optParams)         <span class="cm">// evaluator ✓ → pay provider</span>
+<span class="fn">reject</span>(jobId, reason, optParams)           <span class="cm">// evaluator ✗ → refund client</span>
+<span class="fn">claimRefund</span>(jobId)                         <span class="cm">// anyone, after expiry</span></pre>
+    </div>
 
-      <div class="notice notice-purple" style="margin-bottom:0">
-        <div class="icon">🔑</div>
-        <p>
-          <strong>The hooks system is the extension point.</strong>
-          Each job can have an <code>IACPHook</code> — a contract that receives
-          <code>beforeAction</code>/<code>afterAction</code> callbacks on every state transition.
-          Hooks can add validation, reputation updates, custom fee logic, or dispute resolution.
-          <code>claimRefund</code> is deliberately <em>not hookable</em> — safety guarantee.
-        </p>
-      </div>
+    <blockquote class="callout">
+      <strong>The hooks system is the primary extension point.</strong> Each job can designate an <code>IACPHook</code> contract that receives <code>beforeAction</code>/<code>afterAction</code> callbacks on every state transition. Hooks can add validation, reputation updates, custom fee logic, or dispute resolution — all opt-in per job, with no modification to the base protocol.
+    </blockquote>
+
+    <p>The full specification is available at <a href="https://eips.ethereum.org/EIPS/eip-8183" target="_blank">eips.ethereum.org/EIPS/eip-8183</a>.</p>
+  </div>
+
+  <hr class="section-rule" />
+
+  <!-- ═══ §2 THE PROBLEM ═══ -->
+  <div class="section" id="problem">
+    <div class="section-header">
+      <span class="section-num">§2</span>
+      <h2 class="section-title">The Problem</h2>
+    </div>
+
+    <p>The ERC-8183 specification explicitly states: <em>"No dispute resolution or arbitration; reject/expire is final."</em> This is a deliberate design choice — keep the base protocol minimal. However, real agentic commerce requires considerably more nuance than a binary complete/reject outcome. The following limitations are inherent to the current design:</p>
+
+    <ul class="def-list">
+      <li><span class="arrow">→</span><div><strong>Binary outcomes.</strong> <code>complete()</code> or <code>reject()</code> — nothing in between. A job that is 80% complete receives the same treatment as one that is 0% complete. There is no mechanism for graduated payment.</div></li>
+      <li><span class="arrow">→</span><div><strong>No partial payouts.</strong> Late delivery, partial completion, and quality tiers are not representable. The spec has no mechanism for graduated fund distribution — the escrow either releases in full or refunds in full.</div></li>
+      <li><span class="arrow">→</span><div><strong>No resubmission.</strong> A rejected provider cannot fix and resubmit. The job is terminated. A new job must be created from scratch, losing all context and requiring fresh funding.</div></li>
+      <li><span class="arrow">→</span><div><strong>No dispute escalation.</strong> If the provider disagrees with the evaluator's rejection, no appeal path exists. The evaluator holds absolute power once the job reaches <code>Submitted</code> state.</div></li>
+      <li><span class="arrow">→</span><div><strong>No AI adjudication standard.</strong> The evaluator is a single address — it could be an AI-powered contract, but the spec does not define how AI evaluation integrates with the job lifecycle, nor how multi-stage evaluation (e.g., technical review plus endorsement verification) should be composed.</div></li>
+    </ul>
+
+    <p>Prior work on graduated penalty models in the <a href="https://acastellana.github.io/conditional-payment-cross-border-trade/" target="_blank">Conditional Payment cross-border trade demo</a> demonstrates six verdict tiers, 50–150bps penalties, and return-proof evaluation — all powered by GenLayer AI juries. The open question is how this should be standardized as a reusable hook extension to ERC-8183.</p>
+  </div>
+
+  <hr class="section-rule" />
+
+  <!-- ═══ §3 PIPELINE STATUS ═══ -->
+  <div class="section" id="pipeline">
+    <div class="section-header">
+      <span class="section-num">§3</span>
+      <h2 class="section-title">Pipeline Status</h2>
+    </div>
+
+    <p>The full evaluation pipeline has been tested and verified end-to-end on-chain. GenLayer AI jury reaches consensus, verdicts bridge back to Base Sepolia via LayerZero, and the evaluator contract delivers the outcome to the job. Both oracle signals have been exercised.</p>
+
+    <table class="status-table">
+      <thead>
+        <tr>
+          <th>Signal</th>
+          <th>Verdict</th>
+          <th>Detail</th>
+          <th>Reference</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Signal 1 · AI Jury</td>
+          <td><span class="status-accept">ACCEPTED</span></td>
+          <td>5 LLM validators reached consensus in ~180 s</td>
+          <td class="addr-link"><a href="https://sepolia.basescan.org/tx/0x98915e0e15e1b7cdff0c66d3d62010736d29f4d63a8e0f7fa5a2e279b589039f" target="_blank">Verdict tx →</a></td>
+        </tr>
+        <tr>
+          <td>Signal 2 · Endorsement</td>
+          <td><span class="status-reject">REJECTED</span></td>
+          <td>No author endorsement found on EM thread (expected for test run)</td>
+          <td class="addr-link"><a href="https://sepolia.basescan.org/tx/0xb2bdab72d1652efab8884c6eab5eaea7f35ec63a645f4697fe656d24fc178be1" target="_blank">Verdict tx →</a></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p style="margin-bottom: 16px;">The pipeline comprises four sequential stages:</p>
+
+    <ol class="pipeline-steps">
+      <li><strong>Base contracts deployed.</strong> <code>AgenticCommerce</code>, <code>GenLayerEvaluator</code> (dual-signal, v2), and <code>CourtAwareHook</code> live on Base Sepolia. Job created, funded, submitted.</li>
+      <li><strong>GenLayer oracle consensus.</strong> <code>ProposalEvaluator</code> and <code>EndorsementVerifier</code> deployed on GenLayer Studionet. Multiple AI validators independently evaluate the submission; consensus reached via <code>gl.vm.run_nondet</code> (custom leader/validator pattern).</li>
+      <li><strong>LayerZero bridge relay.</strong> Verdict message bridged from GenLayer Studionet to Base Sepolia. Each signal delivered independently.</li>
+      <li><strong>Verdict delivered on-chain.</strong> <code>GenLayerEvaluator</code> aggregates both signals; calls <code>complete()</code> if both ACCEPT, or <code>reject()</code> if either REJECT. 11/11 direct-mode tests passing. GenLayer contracts: <code>ProposalEvaluator v0.8.0</code> + <code>EndorsementVerifier v0.7.0</code>.</li>
+    </ol>
+
+    <div class="notice-block">
+      <p><strong>This bounty eats its own dogfood.</strong> The prize is an actual ERC-8183 job — <code>createJob()</code> with a GenLayer evaluator and a <code>CourtAwareHook</code>. When you submit a proposal, the AI jury evaluates it on GenLayer and delivers the verdict back via LayerZero bridge to call <code>complete()</code> or <code>reject()</code> on the job. The bounty itself demonstrates the pattern you are being asked to extend.</p>
     </div>
   </div>
-</section>
 
-<!-- ═══ THE GAP ═══ -->
-<section>
-  <div class="container">
-    <span class="label">The problem</span>
-    <h2>What ERC-8183 doesn't do</h2>
-    <p style="color:var(--muted);max-width:640px;margin-bottom:24px">
-      The spec explicitly states: <em>"No dispute resolution or arbitration; reject/expire is final."</em>
-      This is a deliberate design choice — keep the base minimal. But real commerce needs more nuance:
-    </p>
-    <div style="max-width:640px">
-      <div class="arrow-item"><span>→</span><p><strong>Binary outcomes.</strong> <code>complete()</code> or <code>reject()</code> — nothing in between. A job that's 80% done gets the same treatment as one that's 0% done.</p></div>
-      <div class="arrow-item"><span>→</span><p><strong>No partial payouts.</strong> Late delivery, partial completion, quality tiers — the spec has no mechanism for graduated fund distribution.</p></div>
-      <div class="arrow-item"><span>→</span><p><strong>No resubmission.</strong> A rejected provider can't fix and resubmit. The job is dead. A new job must be created from scratch.</p></div>
-      <div class="arrow-item"><span>→</span><p><strong>No dispute escalation.</strong> If the provider disagrees with the evaluator's rejection, there's no appeal path. The evaluator has absolute power once the job is Submitted.</p></div>
-      <div class="arrow-item"><span>→</span><p><strong>No AI adjudication.</strong> The evaluator is a single address. It could be an AI-powered contract — but the spec doesn't define how AI evaluation integrates with the lifecycle.</p></div>
+  <hr class="section-rule" />
+
+  <!-- ═══ §4 EVALUATION CRITERIA ═══ -->
+  <div class="section" id="criteria">
+    <div class="section-header">
+      <span class="section-num">§4</span>
+      <h2 class="section-title">Evaluation Criteria</h2>
     </div>
-    <p style="color:var(--muted);margin-top:24px;font-size:15px;max-width:640px">
-      We've built graduated penalty models in the
-      <a href="https://acastellana.github.io/conditional-payment-cross-border-trade/" target="_blank">Conditional Payment</a>
-      demo — 6 verdict tiers, 50–150bps penalties, return-proof evaluation — all powered by GenLayer AI juries.
-      The question is: <strong>how should this be standardized as a reusable hook extension to ERC-8183?</strong>
-    </p>
+
+    <p>The GenLayer AI jury evaluates every submission against six criteria. The evaluator contract aggregates two independent GenLayer oracle signals: (1) AI technical review against criteria 1–5, and (2) forum endorsement verification for criterion 6. The job remains in <code>Submitted</code> state while signals are collected. Both signals must pass for <code>complete()</code> to be called; if either rejects, <code>reject()</code> fires immediately.</p>
+
+    <ol class="criteria-list">
+      <li>
+        <div class="crit-num">1.</div>
+        <div class="crit-body">
+          <h4>Design Memo</h4>
+          <p>Identify the specific limitations of ERC-8183's binary model. Propose a concrete extension using hooks and/or evaluator contracts. Explain how GenLayer AI adjudication integrates with the job lifecycle. Discuss tradeoffs explicitly.</p>
+        </div>
+      </li>
+      <li>
+        <div class="crit-num">2.</div>
+        <div class="crit-body">
+          <h4>Architecture Diagram</h4>
+          <p>Show <code>AgenticCommerce</code> as the base layer. Show how <code>IACPHook</code> and/or evaluator contracts extend it. Show the GenLayer bridge path. Identify which components live on which chain.</p>
+        </div>
+      </li>
+      <li>
+        <div class="crit-num">3.</div>
+        <div class="crit-body">
+          <h4>Judgment Model</h4>
+          <p>Go beyond binary complete/reject. Support at least two of: partial payout, penalty tiers, refund with deduction, resubmission window. Define verdict codes and fund distribution rules within ERC-8183's state machine.</p>
+        </div>
+      </li>
+      <li>
+        <div class="crit-num">4.</div>
+        <div class="crit-body">
+          <h4>Concrete Example Flow</h4>
+          <p>End-to-end walkthrough with specific values: token amounts, job IDs, timestamps. Show each ERC-8183 function call in sequence. Demonstrate a non-trivial outcome. Show the GenLayer AI jury step explicitly.</p>
+        </div>
+      </li>
+      <li>
+        <div class="crit-num">5.</div>
+        <div class="crit-body">
+          <h4>ERC-8183 Compatibility</h4>
+          <p>Do not modify <code>AgenticCommerce</code> or <code>IERC8183</code>. Use hooks and/or custom evaluator contracts only. Existing jobs without hooks must continue unchanged. The extension must be opt-in per job.</p>
+        </div>
+      </li>
+      <li>
+        <div class="crit-num">6.</div>
+        <div class="crit-body">
+          <h4>Author Endorsement</h4>
+          <p>Post your proposal on the <a href="https://ethereum-magicians.org/t/erc-8183-agentic-commerce/27902" target="_blank">Ethereum Magicians ERC-8183 thread</a> and receive a positive reply from any of the original EIP authors: <strong>Davide Crapis</strong> (<em>@dcrapis</em>), <strong>Bryan Lim</strong> (<em>@ai-virtual-b</em>), <strong>Tay Weixiong</strong> (<em>@twx-virtuals</em>), or <strong>Chooi Zuhwa</strong> (<em>@Zuhwa</em>). A GenLayer <code>EndorsementVerifier</code> oracle verifies the endorsement by fetching the thread directly.</p>
+        </div>
+      </li>
+    </ol>
   </div>
-</section>
 
-<!-- ═══ CRITERIA ═══ -->
-<section>
-  <div class="container">
-    <span class="label">Evaluation criteria</span>
-    <h2>What your proposal must include</h2>
-    <p style="color:var(--muted);margin-bottom:28px">
-      The GenLayer AI jury evaluates every submission against five criteria.
-      All six must pass for <code>complete()</code> to be called. The evaluator aggregates two GenLayer oracle signals — AI technical review + author endorsement verification.
-    </p>
-    <div class="criteria">
-      <div class="crit"><div class="crit-n">1</div><div><h4>Design memo</h4><p>Identify the specific limitations of ERC-8183's binary model. Propose a concrete extension using hooks and/or evaluator contracts. Explain how GenLayer AI adjudication integrates with the job lifecycle. Discuss tradeoffs.</p></div></div>
-      <div class="crit"><div class="crit-n">2</div><div><h4>Architecture diagram</h4><p>Show AgenticCommerce as the base layer. Show how IACPHook and/or evaluator contracts extend it. Show the GenLayer bridge path. Identify which components live on which chain.</p></div></div>
-      <div class="crit"><div class="crit-n">3</div><div><h4>Judgment model</h4><p>Go beyond binary complete/reject. Support at least two of: partial payout, penalty tiers, refund with deduction, resubmission. Define verdict codes and fund distribution rules within ERC-8183's state machine.</p></div></div>
-      <div class="crit"><div class="crit-n">4</div><div><h4>Concrete example flow</h4><p>End-to-end walkthrough with specific values: token amounts, job IDs, timestamps. Show each ERC-8183 function call in sequence. Demonstrate a non-trivial outcome. Show the GenLayer AI jury step.</p></div></div>
-      <div class="crit"><div class="crit-n">5</div><div><h4>ERC-8183 compatibility</h4><p>Do NOT modify AgenticCommerce or IERC8183. Use hooks and/or custom evaluator contracts. Existing jobs without hooks must continue unchanged. The extension is opt-in per job.</p></div></div>
-      <div class="crit" style="border:2px solid var(--purple)"><div class="crit-n" style="background:var(--dark)">6</div><div><h4>Author endorsement</h4><p>Post your proposal on the <a href="https://ethereum-magicians.org/t/erc-8183-agentic-commerce/27902" target="_blank">Ethereum Magicians ERC-8183 thread</a> and receive a positive reply from any of the original EIP authors: <strong>Davide Crapis</strong> (@dcrapis), <strong>Bryan Lim</strong> (@ai-virtual-b), <strong>Tay Weixiong</strong> (@twx-virtuals), or <strong>Chooi Zuhwa</strong> (@Zuhwa). A GenLayer oracle verifies the endorsement by fetching the thread.</p></div></div>
+  <hr class="section-rule" />
+
+  <!-- ═══ §5 BOUNTY LIFECYCLE ═══ -->
+  <div class="section" id="lifecycle">
+    <div class="section-header">
+      <span class="section-num">§5</span>
+      <h2 class="section-title">Bounty Lifecycle</h2>
     </div>
 
-    <div class="notice notice-purple" style="margin-top:24px">
-      <div class="icon">🧠</div>
-      <p>
-        <strong>Two-signal evaluation — no interface changes needed.</strong>
-        The evaluator contract aggregates two independent GenLayer oracle signals:
-        (1) AI jury on 5 technical criteria, and (2) forum endorsement verification.
-        The job stays in <code>Submitted</code> while signals arrive. Only when both
-        pass does <code>complete()</code> fire. If either rejects, <code>reject()</code>
-        fires immediately. This is itself a demonstration of how the evaluator contract
-        serves as the natural extension point for multi-stage evaluation within ERC-8183.
-      </p>
-    </div>
+    <p>This bounty is itself an ERC-8183 job. The full lifecycle follows the spec exactly, with the <code>GenLayerEvaluator</code> acting as evaluator and <code>CourtAwareHook</code> providing metadata registration. The prize window is 30 days from publication; the deadline is <span id="deadline-date">calculated below</span>.</p>
+
+    <ol class="lifecycle-list">
+      <li>
+        <div class="lc-num">1.</div>
+        <dl class="lc-body">
+          <dt>Job Created — Open</dt>
+          <dd>Client calls <code>createJob(provider=0, evaluator=GenLayerEvaluator, hook=CourtAwareHook)</code>. Provider field is open — any address may be assigned as provider.</dd>
+        </dl>
+      </li>
+      <li>
+        <div class="lc-num">2.</div>
+        <dl class="lc-body">
+          <dt>Provider Assigned &amp; Escrow Funded</dt>
+          <dd>When a submitter is ready, the client calls <code>setProvider(jobId, yourAddress)</code>, then <code>fund(jobId, 5000 USDC)</code> to escrow the prize. <span class="state-flow">Open → Funded</span></dd>
+        </dl>
+      </li>
+      <li>
+        <div class="lc-num">3.</div>
+        <dl class="lc-body">
+          <dt>Register &amp; Submit</dt>
+          <dd>Provider calls <code>registerProposal(jobId, url, title)</code> on the <code>CourtAwareHook</code> to record proposal metadata, then <code>submit(jobId, keccak256(url), "0x")</code> on <code>AgenticCommerce</code> to advance state. <span class="state-flow">Funded → Submitted</span></dd>
+        </dl>
+      </li>
+      <li>
+        <div class="lc-num">4.</div>
+        <dl class="lc-body">
+          <dt>GenLayer AI Jury Evaluates</dt>
+          <dd>A relay deploys <code>ProposalEvaluator</code> on GenLayer Studionet. Multiple independent AI validators fetch the proposal URL, evaluate it against the five technical criteria, and reach consensus via the leader/validator model. Simultaneously, <code>EndorsementVerifier</code> fetches the Ethereum Magicians thread to check for an author reply.</dd>
+        </dl>
+      </li>
+      <li>
+        <div class="lc-num">5.</div>
+        <dl class="lc-body">
+          <dt>Verdict Bridged to Base Sepolia</dt>
+          <dd>Each GenLayer verdict is bridged independently via LayerZero to the <code>GenLayerEvaluator</code> contract. The job remains in <code>Submitted</code> state while both signals are collected.</dd>
+        </dl>
+      </li>
+      <li>
+        <div class="lc-num">6.</div>
+        <dl class="lc-body">
+          <dt>Outcome</dt>
+          <dd>If both signals ACCEPT: <code>complete()</code> is called, releasing 5,000 USDC to the provider address. If either signal REJECT: <code>reject()</code> is called, refunding the escrow to client, and a new job is created for the next attempt. Rejected submissions receive detailed feedback from the AI jury. <span class="state-flow">Submitted → Completed | Rejected</span></dd>
+        </dl>
+      </li>
+    </ol>
   </div>
-</section>
 
-<!-- ═══ HOW IT WORKS ═══ -->
-<section>
-  <div class="container">
-    <span class="label">Bounty lifecycle</span>
-    <h2>How this bounty works</h2>
-    <p style="color:var(--muted);margin-bottom:28px">
-      This bounty is itself an ERC-8183 job. The full lifecycle follows the spec exactly.
-    </p>
-    <div class="flow">
-      <div class="step"><div class="step-icon">📝</div><div class="step-body">
-        <h4>Job created (Open)</h4>
-        <p>Client calls <code>createJob(provider=0, evaluator=GenLayerEvaluator, hook=CourtAwareHook)</code>. Provider is open — anyone can claim it.</p>
-      </div></div>
-      <div class="step"><div class="step-icon">🙋</div><div class="step-body">
-        <h4>Provider assigned</h4>
-        <p>When you want to submit, the client calls <code>setProvider(jobId, yourAddress)</code> to assign you. Then <code>fund(jobId, budget)</code> escrows the 5,000 USDC prize.</p>
-        <span class="mono-box">Open → Funded</span>
-      </div></div>
-      <div class="step"><div class="step-icon">📄</div><div class="step-body">
-        <h4>Register + Submit</h4>
-        <p>You call <code>registerProposal(jobId, url, title)</code> on the CourtAwareHook (metadata), then <code>submit(jobId, keccak256(url))</code> on AgenticCommerce.</p>
-        <span class="mono-box">Funded → Submitted</span>
-      </div></div>
-      <div class="step"><div class="step-icon">🧠</div><div class="step-body">
-        <h4>GenLayer AI jury evaluates</h4>
-        <p>The relay deploys a <code>ProposalEvaluator</code> on GenLayer. Multiple AI validators independently fetch your proposal, evaluate against the five criteria, and reach consensus.</p>
-      </div></div>
-      <div class="step"><div class="step-icon">⚖️</div><div class="step-body">
-        <h4>Verdict delivered via bridge</h4>
-        <p>The GenLayer verdict is bridged via LayerZero to the <code>GenLayerEvaluator</code> contract on Base Sepolia. It calls either <code>complete()</code> or <code>reject()</code> on the job.</p>
-      </div></div>
-      <div class="step"><div class="step-icon">🏆</div><div class="step-body">
-        <h4>Outcome</h4>
-        <p><strong>ACCEPT →</strong> <code>complete()</code>: 5,000 USDC released to your address.<br/>
-        <strong>REJECT →</strong> <code>reject()</code>: escrow refunded to client. New job created for next attempt.</p>
-        <span class="mono-box">Submitted → Completed | Rejected</span>
-      </div></div>
+  <hr class="section-rule" />
+
+  <!-- ═══ §6 ARCHITECTURE ═══ -->
+  <div class="section" id="architecture">
+    <div class="section-header">
+      <span class="section-num">§6</span>
+      <h2 class="section-title">Architecture</h2>
     </div>
-  </div>
-</section>
 
-<!-- ═══ ARCHITECTURE ═══ -->
-<section>
-  <div class="container">
-    <span class="label">System architecture</span>
-    <h2>End-to-end flow</h2>
-    <div class="arch">
-<pre>
+    <p>The system spans two chains. Base Sepolia hosts the ERC-8183 job contracts and the dual-signal evaluator. GenLayer Studionet hosts the AI oracle contracts. LayerZero provides the cross-chain message bridge for verdict delivery.</p>
+
+    <figure class="arch-figure">
+      <pre>
 <span class="l">BASE SEPOLIA</span>                                      <span class="l">GENLAYER STUDIONET</span>
 
 ┌──────────────────────────────┐
@@ -383,80 +1003,121 @@
 │                              │
 │  both ACCEPT → <span class="h">complete()</span>    │
 │  either REJECT → <span class="h">reject()</span>    │
-└──────────────────────────────┘
-</pre>
-    </div>
+└──────────────────────────────┘</pre>
+      <figcaption><strong>Figure 1.</strong> End-to-end evaluation pipeline. Two independent GenLayer oracle signals are aggregated by the <code>GenLayerEvaluator</code> on Base Sepolia. Both signals must ACCEPT for the prize to be released.</figcaption>
+    </figure>
   </div>
-</section>
 
-<!-- ═══ ON-CHAIN CONTRACTS ═══ -->
-<section>
-  <div class="container">
-    <span class="label">Deployed contracts</span>
-    <h2>On-chain infrastructure</h2>
-    <table class="t">
-      <thead><tr><th>Contract</th><th>Network</th><th>Address</th></tr></thead>
+  <hr class="section-rule" />
+
+  <!-- ═══ §7 DEPLOYED CONTRACTS ═══ -->
+  <div class="section" id="contracts">
+    <div class="section-header">
+      <span class="section-num">§7</span>
+      <h2 class="section-title">Deployed Contracts</h2>
+    </div>
+
+    <table class="contracts">
+      <thead>
+        <tr>
+          <th>Contract</th>
+          <th>Network</th>
+          <th>Address</th>
+        </tr>
+      </thead>
       <tbody>
-        <tr><td>AgenticCommerce</td><td>Base Sepolia</td><td class="addr"><a href="https://sepolia.basescan.org/address/0x160bc3cb45db987d957d6fee942a6ad7e0e2abb1" target="_blank">0x160b…abb1</a></td></tr>
-        <tr><td>GenLayerEvaluator (v2, dual-signal)</td><td>Base Sepolia</td><td class="addr"><a href="https://sepolia.basescan.org/address/0xd0da34b858137c4f27185c5a3b4056b91dd61f7f" target="_blank">0xd0da…1f7f</a></td></tr>
-        <tr><td>CourtAwareHook</td><td>Base Sepolia</td><td class="addr"><a href="https://sepolia.basescan.org/address/0x10320f3a68efec5027c03d766ddfa81b19e009a5" target="_blank">0x1032…09a5</a></td></tr>
-        <tr><td>MockUSDC (prize)</td><td>Base Sepolia</td><td class="addr"><a href="https://sepolia.basescan.org/address/0x2a2f8da3bf952f31751191dfb9a076701bed4d4e" target="_blank">0x2a2f…4d4e</a></td></tr>
-        <tr><td>ProposalEvaluator (Signal 1)</td><td>GenLayer Studionet</td><td class="addr"><em>Deployed per submission</em></td></tr>
-        <tr><td>EndorsementVerifier (Signal 2)</td><td>GenLayer Studionet</td><td class="addr"><em>Deployed per submission</em></td></tr>
+        <tr>
+          <td>AgenticCommerce</td>
+          <td>Base Sepolia</td>
+          <td class="addr-link"><a href="https://sepolia.basescan.org/address/0x160bc3cb45db987d957d6fee942a6ad7e0e2abb1" target="_blank">0x160b…abb1</a></td>
+        </tr>
+        <tr>
+          <td>GenLayerEvaluator (v2, dual-signal)</td>
+          <td>Base Sepolia</td>
+          <td class="addr-link"><a href="https://sepolia.basescan.org/address/0xd0da34b858137c4f27185c5a3b4056b91dd61f7f" target="_blank">0xd0da…1f7f</a></td>
+        </tr>
+        <tr>
+          <td>CourtAwareHook</td>
+          <td>Base Sepolia</td>
+          <td class="addr-link"><a href="https://sepolia.basescan.org/address/0x10320f3a68efec5027c03d766ddfa81b19e009a5" target="_blank">0x1032…09a5</a></td>
+        </tr>
+        <tr>
+          <td>MockUSDC (prize token)</td>
+          <td>Base Sepolia</td>
+          <td class="addr-link"><a href="https://sepolia.basescan.org/address/0x2a2f8da3bf952f31751191dfb9a076701bed4d4e" target="_blank">0x2a2f…4d4e</a></td>
+        </tr>
+        <tr>
+          <td>ProposalEvaluator (Signal 1)</td>
+          <td>GenLayer Studionet</td>
+          <td><em style="color:var(--ink-faint);font-size:13px;">Deployed per submission</em></td>
+        </tr>
+        <tr>
+          <td>EndorsementVerifier (Signal 2)</td>
+          <td>GenLayer Studionet</td>
+          <td><em style="color:var(--ink-faint);font-size:13px;">Deployed per submission</em></td>
+        </tr>
       </tbody>
     </table>
-    <p style="color:var(--muted);font-size:15px;margin-top:12px">
-      Source: <a href="https://github.com/acastellana/erc8183-bounty" target="_blank">github.com/acastellana/erc8183-bounty</a>.
-      Interface: <a href="https://github.com/acastellana/erc8183-bounty/blob/main/sol/src/IERC8183.sol" target="_blank">IERC8183.sol</a> ·
-      Implementation: <a href="https://github.com/acastellana/erc8183-bounty/blob/main/sol/src/AgenticCommerce.sol" target="_blank">AgenticCommerce.sol</a> ·
-      Evaluator: <a href="https://github.com/acastellana/erc8183-bounty/blob/main/sol/src/GenLayerEvaluator.sol" target="_blank">GenLayerEvaluator.sol</a> ·
-      Hook: <a href="https://github.com/acastellana/erc8183-bounty/blob/main/sol/src/CourtAwareHook.sol" target="_blank">CourtAwareHook.sol</a>
-    </p>
-  </div>
-</section>
 
-<!-- ═══ SUBMIT ═══ -->
-<section class="dark-section">
-  <div class="container">
-    <span class="label">Participate</span>
-    <h2>How to submit a proposal</h2>
-    <p style="max-width:560px">
-      Prepare your proposal covering all five criteria, publish it, and interact with the on-chain contracts.
-    </p>
-    <div class="dark-box">
-      <ul>
-        <li>Write your proposal addressing all six criteria (design memo, architecture, judgment model, example flow, ERC-8183 compatibility, author endorsement)</li>
-        <li>Publish at a publicly accessible URL — GitHub repo, HackMD, or hosted page</li>
-        <li>Post your proposal on the <a href="https://ethereum-magicians.org/t/erc-8183-agentic-commerce/27902" target="_blank" style="color:var(--purple)">Ethereum Magicians ERC-8183 thread</a> and get a positive reply from any original author</li>
-        <li>Contact us to be assigned as provider on the job via <code>setProvider()</code></li>
-        <li>Once funded, call <code>registerProposal(jobId, url, title)</code> on the CourtAwareHook</li>
-        <li>Call <code>submit(jobId, keccak256(url), "0x")</code> on AgenticCommerce</li>
-        <li>Wait for the GenLayer AI jury verdict — ACCEPT releases the prize, REJECT provides detailed feedback</li>
-      </ul>
+    <p>Source repository: <a href="https://github.com/acastellana/erc8183-bounty" target="_blank">github.com/acastellana/erc8183-bounty</a>. Key files: <a href="https://github.com/acastellana/erc8183-bounty/blob/main/sol/src/IERC8183.sol" target="_blank">IERC8183.sol</a> · <a href="https://github.com/acastellana/erc8183-bounty/blob/main/sol/src/AgenticCommerce.sol" target="_blank">AgenticCommerce.sol</a> · <a href="https://github.com/acastellana/erc8183-bounty/blob/main/sol/src/GenLayerEvaluator.sol" target="_blank">GenLayerEvaluator.sol</a> · <a href="https://github.com/acastellana/erc8183-bounty/blob/main/sol/src/CourtAwareHook.sol" target="_blank">CourtAwareHook.sol</a>. Testnet ETH for gas: <a href="https://www.alchemy.com/faucets/base-sepolia" target="_blank">Alchemy Base Sepolia faucet</a>.</p>
+  </div>
+
+  <hr class="section-rule" />
+
+  <!-- ═══ §8 HOW TO SUBMIT ═══ -->
+  <div class="section" id="submit">
+    <div class="section-header">
+      <span class="section-num">§8</span>
+      <h2 class="section-title">How to Submit</h2>
     </div>
-    <p style="margin-top:24px;font-size:15px;color:rgba(255,255,255,.5)">
-      Testnet ETH: <a href="https://www.alchemy.com/faucets/base-sepolia" target="_blank" style="color:var(--purple)">Alchemy faucet</a>.
-      Job ID: <code>0</code> on AgenticCommerce at <code>0x160b…abb1</code>.
-    </p>
-  </div>
-</section>
 
-<footer>
-  <div class="container">
+    <p>Prepare a proposal covering all six evaluation criteria, publish it at a publicly accessible URL, and interact with the on-chain contracts in sequence. Job ID is <code>0</code> on <code>AgenticCommerce</code> at <code>0x160b…abb1</code>.</p>
+
+    <ol class="submit-list">
+      <li>Write your proposal addressing all six criteria: design memo, architecture diagram, judgment model, concrete example flow, ERC-8183 compatibility, and author endorsement plan.</li>
+      <li>Publish the proposal at a publicly accessible URL — a GitHub repository, HackMD document, or hosted page.</li>
+      <li>Post your proposal on the <a href="https://ethereum-magicians.org/t/erc-8183-agentic-commerce/27902" target="_blank">Ethereum Magicians ERC-8183 thread</a>. Obtain a positive reply from any original EIP author (<em>@dcrapis</em>, <em>@ai-virtual-b</em>, <em>@twx-virtuals</em>, or <em>@Zuhwa</em>).</li>
+      <li>Contact us to be assigned as provider on the job via <code>setProvider(jobId, yourAddress)</code>. Wait for the escrow to be funded.</li>
+      <li>Call <code>registerProposal(jobId, url, title)</code> on the <code>CourtAwareHook</code> contract to record proposal metadata on-chain.</li>
+      <li>Call <code>submit(jobId, keccak256(url), "0x")</code> on <code>AgenticCommerce</code> to advance the job to <code>Submitted</code> state and trigger evaluation.</li>
+      <li>Await the GenLayer AI jury verdict. ACCEPT releases 5,000 USDC to your address; REJECT returns the escrow to client with detailed feedback, and a new job is opened for the next attempt.</li>
+    </ol>
+  </div>
+
+  <hr class="section-rule" />
+
+  <!-- ═══ REFERENCES ═══ -->
+  <div class="references" id="references">
+    <h3 class="references-heading">References</h3>
+    <ol class="ref-list">
+      <li>D. Crapis, B. Lim, T. Weixiong, C. Zuhwa. "ERC-8183: Agentic Commerce Protocol." Ethereum Improvement Proposals, 2025. <a href="https://eips.ethereum.org/EIPS/eip-8183" target="_blank">eips.ethereum.org/EIPS/eip-8183</a></li>
+      <li>GenLayer Foundation. "GenLayer Documentation." 2025. <a href="https://docs.genlayer.com" target="_blank">docs.genlayer.com</a></li>
+      <li>A. Castellana. "Conditional Payment Cross-Border Trade Demo." GenLayer, 2025. <a href="https://acastellana.github.io/conditional-payment-cross-border-trade/" target="_blank">acastellana.github.io/conditional-payment-cross-border-trade</a></li>
+      <li>A. Castellana. "ERC-8183 Bounty — Source Repository." GitHub, 2026. <a href="https://github.com/acastellana/erc8183-bounty" target="_blank">github.com/acastellana/erc8183-bounty</a></li>
+      <li>ERC-8183 Discussion Thread. Ethereum Magicians, 2025. <a href="https://ethereum-magicians.org/t/erc-8183-agentic-commerce/27902" target="_blank">ethereum-magicians.org/t/erc-8183-agentic-commerce/27902</a></li>
+    </ol>
+  </div>
+
+  <!-- ═══ FOOTER ═══ -->
+  <footer>
     <div class="footer-inner">
-      <span>ERC-8183 Bounty · Powered by <a href="https://genlayer.com" target="_blank">GenLayer</a></span>
-      <div class="footer-links">
+      <span>ERC-8183 Bounty &middot; Powered by <a href="https://genlayer.com" target="_blank" style="border-bottom:none;">GenLayer</a></span>
+      <nav class="footer-links">
         <a href="https://eips.ethereum.org/EIPS/eip-8183" target="_blank">ERC-8183 Spec</a>
         <a href="https://acastellana.github.io/conditional-payment-cross-border-trade/" target="_blank">Conditional Payment Demo</a>
         <a href="https://docs.genlayer.com" target="_blank">GenLayer Docs</a>
-      </div>
+        <a href="https://github.com/acastellana/erc8183-bounty" target="_blank">GitHub</a>
+      </nav>
     </div>
-  </div>
-</footer>
+  </footer>
+
+</div><!-- /paper -->
 
 <script>
 const d = new Date(Date.now() + 30*864e5);
-document.getElementById('deadline-date').textContent = d.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+const formatted = d.toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'});
+const el = document.getElementById('deadline-date');
+if (el) el.textContent = formatted;
 </script>
 </body>
 </html>
