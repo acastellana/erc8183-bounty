@@ -1,2 +1,4 @@
-node_modules/\nsol/out/\nsol/cache/\n.env\nartifacts/*.key
-node_modules/
+__pycache__/
+*.pyc
+.pytest_cache/
+artifacts/
