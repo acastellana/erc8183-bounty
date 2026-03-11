@@ -50,5 +50,18 @@
       "finalized": false
     },
     "timestamp": 1773207728
+  },
+  "10": {
+    "proposalUrl": "https://raw.githubusercontent.com/acastellana/erc8183-bounty/main/README.md",
+    "proposalTitle": "E2E v2: Threshold Consensus",
+    "signal1": {
+      "txHash": "0x465f09e893dc00341e56d510bbc22d73404601f9f9b4cc4cd00b6c3fcf629edb",
+      "finalized": false
+    },
+    "signal2": {
+      "txHash": "0xed5e79a1d1a1ee2cd6ff99b2bdd454c4f1105accc24966af48099ccb8dd1e5b0",
+      "finalized": false
+    },
+    "timestamp": 1773208722
   }
 }
