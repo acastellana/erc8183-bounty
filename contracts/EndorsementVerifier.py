@@ -1,12 +1,13 @@
-# v0.3.0
+# v0.4.0
 # { "Depends": "py-genlayer:latest" }
 """EndorsementVerifier — GenLayer oracle for ERC-8183 author endorsement.
 
-Uses prompt_non_comparative with YES/NO output. The leader checks the
-Ethereum Magicians thread; co-validators verify if the answer is reasonable.
+Uses prompt_non_comparative following the InternetCourt pattern:
+- Leader checks forum and returns JSON with verdict + reasoning
+- Co-validators verify: is verdict valid? does reasoning make sense?
 
 Verdict codes (match GenLayerEvaluator.sol):
-    ACCEPT (1) — at least one ERC-8183 author endorsed the proposal
+    ACCEPT (1) — author endorsement found
     REJECT (2) — no endorsement found
 """
 
@@ -18,7 +19,6 @@ genvm_eth = gl.evm
 VERDICT_ACCEPT = 1
 VERDICT_REJECT = 2
 
-EIP_AUTHORS = ["dcrapis", "ai-virtual-b", "twx-virtuals", "Zuhwa"]
 FORUM_THREAD_URL = "https://ethereum-magicians.org/t/erc-8183-agentic-commerce/27902"
 
 
@@ -47,59 +47,65 @@ class EndorsementVerifier(gl.Contract):
         self.target_chain_eid   = u256(target_chain_eid)
 
         url = proposal_url
-        authors = ", ".join(EIP_AUTHORS)
 
-        def check():
+        def nondet():
             resp = gl.nondet.web.get(FORUM_THREAD_URL)
             if not resp or resp.status != 200 or not resp.body:
-                return "NO|Could not fetch forum thread"
+                return json.dumps({
+                    "verdict": "REJECT",
+                    "reasoning": "Could not fetch Ethereum Magicians thread"
+                })
 
             content = resp.body.decode("utf-8", errors="replace")
             if len(content) > 60000:
                 content = content[:60000]
 
-            prompt = f"""Check if any ERC-8183 author ({authors}) posted a POSITIVE reply about the proposal at {url} on this Ethereum Magicians thread.
+            prompt = f"""Check if any original ERC-8183 author has positively endorsed the proposal at {url} on this Ethereum Magicians forum thread.
 
-A positive reply = author expresses support, approval, or constructive interest.
-Merely asking questions without support does NOT count.
+ERC-8183 authors: @dcrapis (Davide Crapis), @ai-virtual-b (Bryan Lim), @twx-virtuals (Tay Weixiong), @Zuhwa (Chooi Zuhwa)
 
-FORUM CONTENT:
+FORUM THREAD:
 {content[:50000]}
 
-Output format: YES|author_name or NO|reason
-Examples:
-- YES|dcrapis posted supportive feedback
-- NO|No replies from any ERC-8183 author found"""
+A positive endorsement = author expresses support, approval, or constructive interest.
+Merely asking questions without expressing support does NOT count.
+
+Respond with ONLY a JSON object:
+{{"verdict": "ACCEPT" or "REJECT", "reasoning": "1-2 sentence explanation of what was found."}}"""
 
             result = gl.nondet.exec_prompt(prompt)
-            return str(result).strip()
+            if isinstance(result, str):
+                result = result.replace("```json", "").replace("```", "").strip()
+            return result
 
         result_str = gl.eq_principle.prompt_non_comparative(
-            check,
+            nondet,
             task="Check if an ERC-8183 author endorsed a proposal on Ethereum Magicians",
-            criteria=(
-                "Output must start with YES or NO. "
-                "YES only if a specific ERC-8183 author (dcrapis, ai-virtual-b, "
-                "twx-virtuals, or Zuhwa) posted a positive/supportive reply. "
-                "NO if no such reply exists."
-            ),
+            criteria="The verdict must be ACCEPT or REJECT. The reasoning must state which author endorsed or that none did.",
         )
 
-        result_upper = str(result_str).strip().upper()
-        is_endorsed = result_upper.startswith("YES")
+        try:
+            if isinstance(result_str, str):
+                clean = result_str.replace("```json", "").replace("```", "").strip()
+                parsed = json.loads(clean)
+            elif isinstance(result_str, dict):
+                parsed = result_str
+            else:
+                parsed = json.loads(str(result_str))
 
-        # Extract reason
-        parts = str(result_str).split("|", 1)
-        reason = parts[1].strip() if len(parts) > 1 else str(result_str)
+            v = parsed.get("verdict", "REJECT").strip().upper()
+            r = parsed.get("reasoning", "No reasoning provided").strip()
+        except Exception as e:
+            v = "REJECT"
+            r = f"Parse error: {str(e)}"
 
-        if is_endorsed:
-            self.verdict = "ACCEPT"
-            self.verdict_reason = f"Endorsed: {reason}"
-        else:
-            self.verdict = "REJECT"
-            self.verdict_reason = f"Not endorsed: {reason}"
+        if v not in ("ACCEPT", "REJECT"):
+            v = "REJECT"
 
-        verdict_uint8 = VERDICT_ACCEPT if is_endorsed else VERDICT_REJECT
+        self.verdict = v
+        self.verdict_reason = r
+
+        verdict_uint8 = VERDICT_ACCEPT if v == "ACCEPT" else VERDICT_REJECT
         reason_hash = genvm_eth.keccak256(self.verdict_reason.encode("utf-8"))
 
         resolution_encoder = genvm_eth.MethodEncoder("", [u256, u8, u8, bytes32, str], bool)

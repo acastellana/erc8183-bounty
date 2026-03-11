@@ -1,14 +1,15 @@
-# v0.4.0
+# v0.5.0
 # { "Depends": "py-genlayer:latest" }
 """ProposalEvaluator — GenLayer AI Jury for ERC-8183 Court-Aware Extension Bounty.
 
-Uses prompt_non_comparative with a simple integer output (0-5) that
-co-validators can easily verify. The leader scores the proposal,
-co-validators check if the score is reasonable given the content.
+Uses prompt_non_comparative following the InternetCourt pattern:
+- Leader evaluates and returns JSON with verdict + reasoning
+- Co-validators verify: is verdict valid? does reasoning address the criteria?
+- Co-validators do NOT re-evaluate the proposal themselves
 
 Verdict codes (match GenLayerEvaluator.sol):
-    ACCEPT (1) — score >= 5 → triggers complete()
-    REJECT (2) — score < 5 → triggers reject()
+    ACCEPT (1) — all criteria met
+    REJECT (2) — criteria not met
 """
 
 from genlayer import *
@@ -18,7 +19,6 @@ genvm_eth = gl.evm
 
 VERDICT_ACCEPT = 1
 VERDICT_REJECT = 2
-THRESHOLD = 5
 
 
 class ProposalEvaluator(gl.Contract):
@@ -30,7 +30,6 @@ class ProposalEvaluator(gl.Contract):
     target_chain_eid:   u256
     verdict:            str
     verdict_reason:     str
-    score:              str
 
     def __init__(
         self,
@@ -52,58 +51,67 @@ class ProposalEvaluator(gl.Contract):
 
         url = proposal_url
 
-        def evaluate():
+        def nondet():
             resp = gl.nondet.web.get(url)
             if not resp or resp.status != 200 or not resp.body:
-                return "0|Could not fetch proposal"
+                return json.dumps({
+                    "verdict": "REJECT",
+                    "reasoning": f"Could not fetch proposal from {url}"
+                })
 
             content = resp.body.decode("utf-8", errors="replace")
             if len(content) > 40000:
                 content = content[:40000] + "\n[TRUNCATED]"
 
-            prompt = f"""Score this ERC-8183 extension proposal on 5 criteria (1 point each):
-
-1. DESIGN MEMO — clear doc analyzing ERC-8183 limitations + proposed extension
-2. ARCHITECTURE DIAGRAM — visual showing base contract + extensions + bridge
-3. JUDGMENT MODEL — graduated verdicts (partial payout/penalties/resubmission)
-4. EXAMPLE FLOW — end-to-end walkthrough with specific values
-5. COMPATIBILITY — uses hooks/evaluators, does NOT modify core ERC-8183
+            prompt = f"""You are evaluating a proposal for extending ERC-8183 with court-aware dispute resolution.
 
 PROPOSAL:
 {content}
 
-Output format: SCORE|REASON
-Where SCORE is 0-5 (criteria met count) and REASON is one sentence.
-Example: 3|Missing architecture diagram and example flow."""
+CRITERIA (all 5 must be met for ACCEPT):
+1. Design memo analyzing ERC-8183 limitations and proposing extension
+2. Architecture diagram showing base contract + extensions + bridge
+3. Judgment model with graduated verdicts (partial payout/penalties)
+4. Concrete example flow with specific values
+5. ERC-8183 compatibility (uses hooks/evaluators, no core changes)
+
+Respond with ONLY a JSON object:
+{{"verdict": "ACCEPT" or "REJECT", "reasoning": "2-3 sentence explanation referencing specific criteria."}}"""
 
             result = gl.nondet.exec_prompt(prompt)
-            return str(result).strip()
+            if isinstance(result, str):
+                result = result.replace("```json", "").replace("```", "").strip()
+            return result
 
         result_str = gl.eq_principle.prompt_non_comparative(
-            evaluate,
-            task="Score an ERC-8183 extension proposal 0-5 based on five criteria",
-            criteria=(
-                "Output must be SCORE|REASON where SCORE is 0-5. "
-                "Score should accurately reflect how many of the 5 criteria "
-                "(design memo, architecture, judgment model, example flow, compatibility) "
-                "are clearly present in the proposal."
-            ),
+            nondet,
+            task="Evaluate an ERC-8183 extension proposal and render a verdict as JSON",
+            criteria="The verdict must be ACCEPT or REJECT. The reasoning must reference specific evaluation criteria.",
         )
 
-        # Parse score from "SCORE|REASON" format
+        # Parse result
         try:
-            parts = str(result_str).split("|", 1)
-            score_val = int("".join(c for c in parts[0] if c.isdigit())[:1] or "0")
-            reason = parts[1].strip() if len(parts) > 1 else "No reason provided"
-        except:
-            score_val = 0
-            reason = f"Parse error: {str(result_str)[:200]}"
+            if isinstance(result_str, str):
+                clean = result_str.replace("```json", "").replace("```", "").strip()
+                parsed = json.loads(clean)
+            elif isinstance(result_str, dict):
+                parsed = result_str
+            else:
+                parsed = json.loads(str(result_str))
 
-        self.score = str(score_val)
-        self.verdict = "ACCEPT" if score_val >= THRESHOLD else "REJECT"
-        self.verdict_reason = f"Score {score_val}/5. {reason}"
+            v = parsed.get("verdict", "REJECT").strip().upper()
+            r = parsed.get("reasoning", "No reasoning provided").strip()
+        except Exception as e:
+            v = "REJECT"
+            r = f"Parse error: {str(e)}"
 
-        verdict_uint8 = VERDICT_ACCEPT if self.verdict == "ACCEPT" else VERDICT_REJECT
+        if v not in ("ACCEPT", "REJECT"):
+            v = "REJECT"
+
+        self.verdict = v
+        self.verdict_reason = r
+
+        verdict_uint8 = VERDICT_ACCEPT if v == "ACCEPT" else VERDICT_REJECT
         reason_hash = genvm_eth.keccak256(self.verdict_reason.encode("utf-8"))
 
         resolution_encoder = genvm_eth.MethodEncoder("", [u256, u8, bytes32, str], bool)
@@ -130,10 +138,6 @@ Example: 3|Missing architecture diagram and example flow."""
     @gl.public.view
     def get_reason(self) -> str:
         return self.verdict_reason
-
-    @gl.public.view
-    def get_score(self) -> str:
-        return self.score
 
     @gl.public.view
     def get_status(self) -> str:

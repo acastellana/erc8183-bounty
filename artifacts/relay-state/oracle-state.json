@@ -63,5 +63,18 @@
       "finalized": false
     },
     "timestamp": 1773208722
+  },
+  "11": {
+    "proposalUrl": "https://raw.githubusercontent.com/acastellana/erc8183-bounty/main/README.md",
+    "proposalTitle": "E2E v3: Simple Output Format",
+    "signal1": {
+      "txHash": "0x51859ed2eace0bcc4e44cc87d53f0f6ee081e08c18076afc453e3b023ead9e1f",
+      "finalized": false
+    },
+    "signal2": {
+      "txHash": "0x2ac197f787effe62a0b1a5e16a88e8df9363e6a85fce760d36d25b16a5f2209f",
+      "finalized": false
+    },
+    "timestamp": 1773209416
   }
 }
