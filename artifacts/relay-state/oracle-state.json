@@ -24,5 +24,31 @@
       "finalized": false
     },
     "timestamp": 1773130866
+  },
+  "3": {
+    "proposalUrl": "https://raw.githubusercontent.com/acastellana/erc8183-bounty/main/README.md",
+    "proposalTitle": "Dual-signal test",
+    "signal1": {
+      "txHash": "0x376e8a3366f49014074aa89cfc102af840f6dab247550315270eb8f5d8b96f0c",
+      "finalized": false
+    },
+    "signal2": {
+      "txHash": "0x4e253408cf9c4c71b5cfe20fcae237caa49e18381243897799a03e8bff4c8836",
+      "finalized": false
+    },
+    "timestamp": 1773161056
+  },
+  "9": {
+    "proposalUrl": "https://raw.githubusercontent.com/acastellana/erc8183-bounty/main/README.md",
+    "proposalTitle": "E2E Test: Full Relay Lifecycle",
+    "signal1": {
+      "txHash": "0x6b3f32a9391068a28243590de37ccabde41f67bde074341a9b0aafe0f388496c",
+      "finalized": false
+    },
+    "signal2": {
+      "txHash": "0x6e4d4778c4285ad4535edfac6f58690e79f7a04aa6c652836a2d421c2471258d",
+      "finalized": false
+    },
+    "timestamp": 1773207728
   }
 }

@@ -1,27 +1,14 @@
-# v0.1.0
+# v0.2.0
 # { "Depends": "py-genlayer:latest" }
-"""EndorsementVerifier — GenLayer oracle that verifies ERC-8183 author endorsement.
+"""EndorsementVerifier — GenLayer oracle for ERC-8183 author endorsement.
 
-Fetches the Ethereum Magicians ERC-8183 discussion thread and checks whether
-any of the original EIP authors have posted a positive reply to the proposal.
-
-Accepted authors (from ERC-8183 spec):
-  - Davide Crapis (@dcrapis)
-  - Bryan Lim (@ai-virtual-b)
-  - Tay Weixiong (@twx-virtuals)
-  - Chooi Zuhwa (@Zuhwa)
-
-The verifier:
-  1. Fetches the Ethereum Magicians thread for ERC-8183
-  2. Searches for replies from any of the four authors
-  3. Evaluates whether the reply is a positive endorsement of the proposal
-  4. Returns ACCEPT if a positive endorsement exists, REJECT otherwise
+Uses threshold-based consensus: each validator checks if any ERC-8183 author
+posted a positive reply on the Ethereum Magicians thread. Returns "YES" or "NO"
+— a simple string that validators can agree on across different LLMs.
 
 Verdict codes (match GenLayerEvaluator.sol):
-    ACCEPT (1) — at least one author posted a positive reply
+    ACCEPT (1) — at least one author endorsed
     REJECT (2) — no author endorsement found
-
-Sends Signal 2 (endorsement) to GenLayerEvaluator via bridge.
 """
 
 from genlayer import *
@@ -32,32 +19,18 @@ genvm_eth = gl.evm
 VERDICT_ACCEPT = 1
 VERDICT_REJECT = 2
 
-# ERC-8183 authors — any one of these counts as valid endorsement
-EIP_AUTHORS = {
-    "dcrapis":       "Davide Crapis",
-    "ai-virtual-b":  "Bryan Lim",
-    "twx-virtuals":  "Tay Weixiong",
-    "Zuhwa":         "Chooi Zuhwa",
-    # Also accept display name variations
-    "davide_crapis": "Davide Crapis",
-    "davidecrapis":  "Davide Crapis",
-}
-
-# Ethereum Magicians thread URL
+EIP_AUTHORS = ["dcrapis", "ai-virtual-b", "twx-virtuals", "Zuhwa"]
 FORUM_THREAD_URL = "https://ethereum-magicians.org/t/erc-8183-agentic-commerce/27902"
 
 
 class EndorsementVerifier(gl.Contract):
-    """Verifies author endorsement on Ethereum Magicians forum."""
-
     job_id:              str
     proposal_url:        str
-    evaluator_contract:  str   # GenLayerEvaluator on Base Sepolia
+    evaluator_contract:  str
     bridge_sender:       str
     target_chain_eid:    u256
     verdict:             str
     verdict_reason:      str
-    endorsing_author:    str   # which author endorsed (empty if none)
 
     def __init__(
         self,
@@ -75,114 +48,56 @@ class EndorsementVerifier(gl.Contract):
         self.target_chain_eid   = u256(target_chain_eid)
 
         url = proposal_url
-        jid = job_id
+        authors = ", ".join(EIP_AUTHORS)
 
-        # Build author list for prompt
-        authors_str = ", ".join(f"@{k} ({v})" for k, v in {
-            "dcrapis": "Davide Crapis",
-            "ai-virtual-b": "Bryan Lim",
-            "twx-virtuals": "Tay Weixiong",
-            "Zuhwa": "Chooi Zuhwa",
-        }.items())
-
-        def nondet():
-            # Fetch the Ethereum Magicians thread
+        # Simple YES/NO check — consensuable across LLMs
+        def check_endorsement():
             resp = gl.nondet.web.get(FORUM_THREAD_URL)
-            forum_ok = resp and resp.status == 200 and resp.body
+            if not resp or resp.status != 200 or not resp.body:
+                return "NO"
 
-            if not forum_ok:
-                return json.dumps({
-                    "verdict": "REJECT",
-                    "reason": f"Could not fetch Ethereum Magicians thread ({resp.status if resp else 'no response'})",
-                    "endorsing_author": "",
-                    "endorsement_quote": ""
-                })
+            content = resp.body.decode("utf-8", errors="replace")
+            if len(content) > 80000:
+                content = content[:80000]
 
-            forum_content = resp.body.decode("utf-8", errors="replace")
+            prompt = f"""Check if any of these ERC-8183 authors have posted a POSITIVE reply about the proposal at {url} on the Ethereum Magicians forum:
 
-            # Truncate if very large
-            if len(forum_content) > 80000:
-                forum_content = forum_content[:80000] + "\n[TRUNCATED]"
+Authors: {authors}
 
-            prompt = f"""You are verifying whether any original ERC-8183 author has endorsed a specific proposal on the Ethereum Magicians forum.
+Forum thread content:
+{content[:60000]}
 
-PROPOSAL URL: {url}
-JOB ID: {jid}
+A positive reply means the author expresses support, approval, or constructive interest in the extension proposal. Merely asking questions does not count.
 
-FORUM THREAD CONTENT (Ethereum Magicians):
-{forum_content}
-
-ERC-8183 AUTHORS (any one of these counts):
-{authors_str}
-
-TASK:
-1. Search the forum thread for replies/posts from any of the listed ERC-8183 authors
-2. Check if any author's reply references or endorses the proposal at {url}
-3. A "positive endorsement" means the author:
-   - Acknowledges the proposal exists
-   - Expresses support, approval, or interest in the extension
-   - Does NOT need to be unconditional approval — constructive positive feedback counts
-4. A reply that merely asks questions without expressing support does NOT count
-5. No reply from any author = REJECT
-
-Output ONLY valid JSON:
-{{
-  "verdict": "ACCEPT" | "REJECT",
-  "reason": "One to two sentences explaining the finding.",
-  "endorsing_author": "username of the endorsing author (empty string if none)",
-  "endorsement_quote": "Direct quote from the endorsing reply (empty if none, max 200 chars)"
-}}"""
+Answer ONLY "YES" or "NO"."""
 
             result = gl.nondet.exec_prompt(prompt)
-            return result.strip() if isinstance(result, str) else str(result).strip()
+            answer = str(result).strip().upper()
+            # Normalize to exactly YES or NO
+            if "YES" in answer:
+                return "YES"
+            return "NO"
 
-        result_str = gl.eq_principle.prompt_non_comparative(
-            nondet,
-            task="Verify whether an ERC-8183 author has positively endorsed a proposal on Ethereum Magicians",
-            criteria=(
-                "Verdict must be ACCEPT or REJECT. "
-                "ACCEPT only if a specific author (from the listed four) posted a positive reply. "
-                "endorsing_author must be a real username from the author list or empty. "
-                "endorsement_quote must be a real quote from the thread or empty."
-            ),
+        # Consensus on YES/NO — validators can easily agree on this
+        endorsed = gl.eq_principle.prompt_comparative(
+            check_endorsement,
+            task="Check if an ERC-8183 author endorsed a proposal on Ethereum Magicians",
+            criteria="Output must be exactly YES or NO",
         )
 
-        try:
-            clean = result_str.replace("```json", "").replace("```", "").strip() if isinstance(result_str, str) else str(result_str)
-            parsed = json.loads(clean)
+        endorsed_str = str(endorsed).strip().upper()
+        is_endorsed = "YES" in endorsed_str
 
-            v = parsed.get("verdict", "REJECT").strip().upper()
-            r = parsed.get("reason", "").strip()
-            author = parsed.get("endorsing_author", "").strip()
-            quote = parsed.get("endorsement_quote", "").strip()
+        if is_endorsed:
+            self.verdict = "ACCEPT"
+            self.verdict_reason = "Author endorsement found on Ethereum Magicians thread"
+        else:
+            self.verdict = "REJECT"
+            self.verdict_reason = "No author endorsement found on Ethereum Magicians thread"
 
-            # Validate author is actually in our list
-            if v == "ACCEPT" and author:
-                author_lower = author.lower().replace("@", "")
-                valid = any(author_lower == k.lower() for k in EIP_AUTHORS)
-                if not valid:
-                    v = "REJECT"
-                    r = f"Author '{author}' is not in the ERC-8183 author list. {r}"
-                    author = ""
-
-        except Exception as e:
-            v = "REJECT"
-            r = f"Parse error: {str(e)}"
-            author = ""
-            quote = ""
-
-        if v not in ("ACCEPT", "REJECT"):
-            v = "REJECT"
-
-        self.verdict = v
-        self.verdict_reason = f"{r} | Quote: {quote}" if quote else r
-        self.endorsing_author = author
-
-        verdict_uint8 = VERDICT_ACCEPT if v == "ACCEPT" else VERDICT_REJECT
+        verdict_uint8 = VERDICT_ACCEPT if is_endorsed else VERDICT_REJECT
         reason_hash = genvm_eth.keccak256(self.verdict_reason.encode("utf-8"))
 
-        # ABI-encode: (uint256 jobId, uint8 signalType, uint8 verdict, bytes32 reason, string details)
-        # signalType = 2 for endorsement
         resolution_encoder = genvm_eth.MethodEncoder("", [u256, u8, u8, bytes32, str], bool)
         resolution_data = resolution_encoder.encode_call(
             [u256(int(job_id)), u8(2), verdict_uint8, reason_hash, self.verdict_reason]
@@ -202,14 +117,11 @@ Output ONLY valid JSON:
 
     @gl.public.view
     def get_verdict(self) -> str:
-        return json.dumps({
-            "job_id":           self.job_id,
-            "verdict":          self.verdict,
-            "verdict_reason":   self.verdict_reason,
-            "endorsing_author": self.endorsing_author,
-            "proposal_url":     self.proposal_url,
-            "forum_thread":     FORUM_THREAD_URL,
-        })
+        return self.verdict
+
+    @gl.public.view
+    def get_reason(self) -> str:
+        return self.verdict_reason
 
     @gl.public.view
     def get_status(self) -> str:
