@@ -1,14 +1,10 @@
-# v0.4.0
+# v0.5.0
 # { "Depends": "py-genlayer:latest" }
-"""EndorsementVerifier — GenLayer oracle for ERC-8183 author endorsement.
+"""EndorsementVerifier — Minimal GenLayer oracle for author endorsement.
 
-Uses prompt_non_comparative following the InternetCourt pattern:
-- Leader checks forum and returns JSON with verdict + reasoning
-- Co-validators verify: is verdict valid? does reasoning make sense?
-
-Verdict codes (match GenLayerEvaluator.sol):
-    ACCEPT (1) — author endorsement found
-    REJECT (2) — no endorsement found
+Stripped-down for reliable Studionet consensus:
+- Short prompt, aggressive content truncation
+- Clean JSON, simple criteria
 """
 
 from genlayer import *
@@ -16,10 +12,7 @@ import json
 
 genvm_eth = gl.evm
 
-VERDICT_ACCEPT = 1
-VERDICT_REJECT = 2
-
-FORUM_THREAD_URL = "https://ethereum-magicians.org/t/erc-8183-agentic-commerce/27902"
+FORUM_URL = "https://ethereum-magicians.org/t/erc-8183-agentic-commerce/27902"
 
 
 class EndorsementVerifier(gl.Contract):
@@ -49,81 +42,67 @@ class EndorsementVerifier(gl.Contract):
         url = proposal_url
 
         def nondet():
-            resp = gl.nondet.web.get(FORUM_THREAD_URL)
+            resp = gl.nondet.web.get(FORUM_URL)
             if not resp or resp.status != 200 or not resp.body:
-                return json.dumps({
-                    "verdict": "REJECT",
-                    "reasoning": "Could not fetch Ethereum Magicians thread"
-                })
+                return '{"verdict":"REJECT","reasoning":"Could not fetch forum thread"}'
 
-            content = resp.body.decode("utf-8", errors="replace")
-            if len(content) > 60000:
-                content = content[:60000]
+            content = resp.body.decode("utf-8", errors="replace")[:15000]
 
-            prompt = f"""Check if any original ERC-8183 author has positively endorsed the proposal at {url} on this Ethereum Magicians forum thread.
+            prompt = (
+                "Has any ERC-8183 author (dcrapis, ai-virtual-b, twx-virtuals, Zuhwa) "
+                "posted a positive reply about " + url + " in this thread? "
+                "Reply JSON: {\"verdict\":\"ACCEPT\" or \"REJECT\",\"reasoning\":\"one sentence\"}\n\n"
+                + content
+            )
 
-ERC-8183 authors: @dcrapis (Davide Crapis), @ai-virtual-b (Bryan Lim), @twx-virtuals (Tay Weixiong), @Zuhwa (Chooi Zuhwa)
-
-FORUM THREAD:
-{content[:50000]}
-
-A positive endorsement = author expresses support, approval, or constructive interest.
-Merely asking questions without expressing support does NOT count.
-
-Respond with ONLY a JSON object:
-{{"verdict": "ACCEPT" or "REJECT", "reasoning": "1-2 sentence explanation of what was found."}}"""
-
-            result = gl.nondet.exec_prompt(prompt)
-            if isinstance(result, str):
-                result = result.replace("```json", "").replace("```", "").strip()
-            return result
+            raw = gl.nondet.exec_prompt(prompt)
+            s = str(raw).strip()
+            s = s.replace("```json", "").replace("```", "").strip()
+            start = s.find("{")
+            end = s.rfind("}") + 1
+            if start >= 0 and end > start:
+                s = s[start:end]
+            return s
 
         result_str = gl.eq_principle.prompt_non_comparative(
             nondet,
-            task="Check if an ERC-8183 author endorsed a proposal on Ethereum Magicians",
-            criteria="The verdict must be ACCEPT or REJECT. The reasoning must state which author endorsed or that none did.",
+            task="Check if an ERC-8183 author endorsed a proposal on a forum",
+            criteria="Verdict must be ACCEPT or REJECT. Reasoning must be one sentence.",
         )
 
         try:
-            if isinstance(result_str, str):
-                clean = result_str.replace("```json", "").replace("```", "").strip()
-                parsed = json.loads(clean)
-            elif isinstance(result_str, dict):
-                parsed = result_str
-            else:
-                parsed = json.loads(str(result_str))
-
-            v = parsed.get("verdict", "REJECT").strip().upper()
-            r = parsed.get("reasoning", "No reasoning provided").strip()
-        except Exception as e:
+            s = str(result_str).strip()
+            s = s.replace("```json", "").replace("```", "").strip()
+            start = s.find("{")
+            end = s.rfind("}") + 1
+            if start >= 0 and end > start:
+                s = s[start:end]
+            parsed = json.loads(s)
+            v = str(parsed.get("verdict", "REJECT")).strip().upper()
+            r = str(parsed.get("reasoning", "")).strip()
+        except:
             v = "REJECT"
-            r = f"Parse error: {str(e)}"
+            r = "Could not parse verification result"
 
         if v not in ("ACCEPT", "REJECT"):
             v = "REJECT"
 
         self.verdict = v
-        self.verdict_reason = r
+        self.verdict_reason = r[:300]
 
-        verdict_uint8 = VERDICT_ACCEPT if v == "ACCEPT" else VERDICT_REJECT
+        verdict_uint8 = 1 if v == "ACCEPT" else 2
         reason_hash = genvm_eth.keccak256(self.verdict_reason.encode("utf-8"))
 
-        resolution_encoder = genvm_eth.MethodEncoder("", [u256, u8, u8, bytes32, str], bool)
-        resolution_data = resolution_encoder.encode_call(
+        enc = genvm_eth.MethodEncoder("", [u256, u8, u8, bytes32, str], bool)
+        data = enc.encode_call(
             [u256(int(job_id)), u8(2), verdict_uint8, reason_hash, self.verdict_reason]
         )[4:]
 
-        wrapper_encoder = genvm_eth.MethodEncoder("", [Address, bytes], bool)
-        message_bytes = wrapper_encoder.encode_call(
-            [Address(evaluator_contract), resolution_data]
-        )[4:]
+        wrapper = genvm_eth.MethodEncoder("", [Address, bytes], bool)
+        msg = wrapper.encode_call([Address(evaluator_contract), data])[4:]
 
         bridge = gl.get_contract_at(Address(bridge_sender))
-        bridge.emit().send_message(
-            int(self.target_chain_eid),
-            target_contract,
-            message_bytes
-        )
+        bridge.emit().send_message(int(self.target_chain_eid), target_contract, msg)
 
     @gl.public.view
     def get_verdict(self) -> str:

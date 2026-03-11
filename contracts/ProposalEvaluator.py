@@ -1,24 +1,17 @@
-# v0.5.0
+# v0.6.0
 # { "Depends": "py-genlayer:latest" }
-"""ProposalEvaluator — GenLayer AI Jury for ERC-8183 Court-Aware Extension Bounty.
+"""ProposalEvaluator — Minimal GenLayer AI Jury for ERC-8183 Bounty.
 
-Uses prompt_non_comparative following the InternetCourt pattern:
-- Leader evaluates and returns JSON with verdict + reasoning
-- Co-validators verify: is verdict valid? does reasoning address the criteria?
-- Co-validators do NOT re-evaluate the proposal themselves
-
-Verdict codes (match GenLayerEvaluator.sol):
-    ACCEPT (1) — all criteria met
-    REJECT (2) — criteria not met
+Stripped-down version for reliable Studionet consensus:
+- Short prompt, small content window
+- Clean JSON output with aggressive stripping
+- Simple verification criteria for co-validators
 """
 
 from genlayer import *
 import json
 
 genvm_eth = gl.evm
-
-VERDICT_ACCEPT = 1
-VERDICT_REJECT = 2
 
 
 class ProposalEvaluator(gl.Contract):
@@ -54,82 +47,68 @@ class ProposalEvaluator(gl.Contract):
         def nondet():
             resp = gl.nondet.web.get(url)
             if not resp or resp.status != 200 or not resp.body:
-                return json.dumps({
-                    "verdict": "REJECT",
-                    "reasoning": f"Could not fetch proposal from {url}"
-                })
+                return '{"verdict":"REJECT","reasoning":"Could not fetch proposal"}'
 
-            content = resp.body.decode("utf-8", errors="replace")
-            if len(content) > 40000:
-                content = content[:40000] + "\n[TRUNCATED]"
+            content = resp.body.decode("utf-8", errors="replace")[:8000]
 
-            prompt = f"""You are evaluating a proposal for extending ERC-8183 with court-aware dispute resolution.
+            prompt = (
+                "Does this document propose an extension to ERC-8183 with: "
+                "(a) a design analysis, (b) architecture, (c) graduated verdicts, "
+                "(d) example flow, (e) compatibility via hooks? "
+                "Reply JSON: {\"verdict\":\"ACCEPT\" or \"REJECT\",\"reasoning\":\"one sentence\"}\n\n"
+                + content
+            )
 
-PROPOSAL:
-{content}
-
-CRITERIA (all 5 must be met for ACCEPT):
-1. Design memo analyzing ERC-8183 limitations and proposing extension
-2. Architecture diagram showing base contract + extensions + bridge
-3. Judgment model with graduated verdicts (partial payout/penalties)
-4. Concrete example flow with specific values
-5. ERC-8183 compatibility (uses hooks/evaluators, no core changes)
-
-Respond with ONLY a JSON object:
-{{"verdict": "ACCEPT" or "REJECT", "reasoning": "2-3 sentence explanation referencing specific criteria."}}"""
-
-            result = gl.nondet.exec_prompt(prompt)
-            if isinstance(result, str):
-                result = result.replace("```json", "").replace("```", "").strip()
-            return result
+            raw = gl.nondet.exec_prompt(prompt)
+            # Aggressively clean output
+            s = str(raw).strip()
+            s = s.replace("```json", "").replace("```", "").strip()
+            # Find the JSON object
+            start = s.find("{")
+            end = s.rfind("}") + 1
+            if start >= 0 and end > start:
+                s = s[start:end]
+            return s
 
         result_str = gl.eq_principle.prompt_non_comparative(
             nondet,
-            task="Evaluate an ERC-8183 extension proposal and render a verdict as JSON",
-            criteria="The verdict must be ACCEPT or REJECT. The reasoning must reference specific evaluation criteria.",
+            task="Evaluate if a document proposes an ERC-8183 extension",
+            criteria="Verdict must be ACCEPT or REJECT. Reasoning must be one sentence.",
         )
 
-        # Parse result
         try:
-            if isinstance(result_str, str):
-                clean = result_str.replace("```json", "").replace("```", "").strip()
-                parsed = json.loads(clean)
-            elif isinstance(result_str, dict):
-                parsed = result_str
-            else:
-                parsed = json.loads(str(result_str))
-
-            v = parsed.get("verdict", "REJECT").strip().upper()
-            r = parsed.get("reasoning", "No reasoning provided").strip()
-        except Exception as e:
+            s = str(result_str).strip()
+            s = s.replace("```json", "").replace("```", "").strip()
+            start = s.find("{")
+            end = s.rfind("}") + 1
+            if start >= 0 and end > start:
+                s = s[start:end]
+            parsed = json.loads(s)
+            v = str(parsed.get("verdict", "REJECT")).strip().upper()
+            r = str(parsed.get("reasoning", "")).strip()
+        except:
             v = "REJECT"
-            r = f"Parse error: {str(e)}"
+            r = "Could not parse evaluation result"
 
         if v not in ("ACCEPT", "REJECT"):
             v = "REJECT"
 
         self.verdict = v
-        self.verdict_reason = r
+        self.verdict_reason = r[:300]
 
-        verdict_uint8 = VERDICT_ACCEPT if v == "ACCEPT" else VERDICT_REJECT
+        verdict_uint8 = 1 if v == "ACCEPT" else 2
         reason_hash = genvm_eth.keccak256(self.verdict_reason.encode("utf-8"))
 
-        resolution_encoder = genvm_eth.MethodEncoder("", [u256, u8, bytes32, str], bool)
-        resolution_data = resolution_encoder.encode_call(
+        enc = genvm_eth.MethodEncoder("", [u256, u8, bytes32, str], bool)
+        data = enc.encode_call(
             [u256(int(job_id)), verdict_uint8, reason_hash, self.verdict_reason]
         )[4:]
 
-        wrapper_encoder = genvm_eth.MethodEncoder("", [Address, bytes], bool)
-        message_bytes = wrapper_encoder.encode_call(
-            [Address(evaluator_contract), resolution_data]
-        )[4:]
+        wrapper = genvm_eth.MethodEncoder("", [Address, bytes], bool)
+        msg = wrapper.encode_call([Address(evaluator_contract), data])[4:]
 
         bridge = gl.get_contract_at(Address(bridge_sender))
-        bridge.emit().send_message(
-            int(self.target_chain_eid),
-            target_contract,
-            message_bytes
-        )
+        bridge.emit().send_message(int(self.target_chain_eid), target_contract, msg)
 
     @gl.public.view
     def get_verdict(self) -> str:

@@ -76,5 +76,18 @@
       "finalized": false
     },
     "timestamp": 1773209416
+  },
+  "12": {
+    "proposalUrl": "https://raw.githubusercontent.com/acastellana/erc8183-bounty/main/README.md",
+    "proposalTitle": "E2E v5: InternetCourt Pattern",
+    "signal1": {
+      "txHash": "0x185cc9de301a416f0643ab6faf69694eb95a32b4746e845767d8434744748077",
+      "finalized": false
+    },
+    "signal2": {
+      "txHash": "0x4465062a68326e2bc4401ce25f53169ec5047d25eadf7ac1957f633018ff958e",
+      "finalized": false
+    },
+    "timestamp": 1773210638
   }
 }
