@@ -1,10 +1,8 @@
-# v0.5.0
+# v0.6.0
 # { "Depends": "py-genlayer:latest" }
-"""EndorsementVerifier — Minimal GenLayer oracle for author endorsement.
+"""EndorsementVerifier — Ultra-minimal author endorsement check.
 
-Stripped-down for reliable Studionet consensus:
-- Short prompt, aggressive content truncation
-- Clean JSON, simple criteria
+Uses JSON API for clean data. Returns just ACCEPT/REJECT string.
 """
 
 from genlayer import *
@@ -12,7 +10,7 @@ import json
 
 genvm_eth = gl.evm
 
-FORUM_URL = "https://ethereum-magicians.org/t/erc-8183-agentic-commerce/27902"
+FORUM_JSON = "https://ethereum-magicians.org/t/erc-8183-agentic-commerce/27902.json"
 
 
 class EndorsementVerifier(gl.Contract):
@@ -42,55 +40,49 @@ class EndorsementVerifier(gl.Contract):
         url = proposal_url
 
         def nondet():
-            resp = gl.nondet.web.get(FORUM_URL)
+            resp = gl.nondet.web.get(FORUM_JSON)
             if not resp or resp.status != 200 or not resp.body:
-                return '{"verdict":"REJECT","reasoning":"Could not fetch forum thread"}'
+                return "REJECT"
 
-            content = resp.body.decode("utf-8", errors="replace")[:15000]
+            # Parse JSON API for post authors
+            try:
+                data = json.loads(resp.body.decode("utf-8"))
+                posts = data.get("post_stream", {}).get("posts", [])
+                authors = {"dcrapis", "ai-virtual-b", "twx-virtuals", "zuhwa",
+                           "davidecrapis.eth", "davidecrapis"}
 
-            prompt = (
-                "Has any ERC-8183 author (dcrapis, ai-virtual-b, twx-virtuals, Zuhwa) "
-                "posted a positive reply about " + url + " in this thread? "
-                "Reply JSON: {\"verdict\":\"ACCEPT\" or \"REJECT\",\"reasoning\":\"one sentence\"}\n\n"
-                + content
-            )
+                for post in posts:
+                    username = str(post.get("username", "")).lower()
+                    if username in authors and post.get("post_number", 0) > 1:
+                        # Found a reply from an author
+                        cooked = str(post.get("cooked", ""))[:500]
+                        prompt = (
+                            "Is this forum reply a positive endorsement? "
+                            "Reply exactly YES or NO.\n\n" + cooked
+                        )
+                        raw = gl.nondet.exec_prompt(prompt)
+                        if "YES" in str(raw).upper():
+                            return "ACCEPT"
 
-            raw = gl.nondet.exec_prompt(prompt)
-            s = str(raw).strip()
-            s = s.replace("```json", "").replace("```", "").strip()
-            start = s.find("{")
-            end = s.rfind("}") + 1
-            if start >= 0 and end > start:
-                s = s[start:end]
-            return s
+                return "REJECT"
+            except:
+                return "REJECT"
 
         result_str = gl.eq_principle.prompt_non_comparative(
             nondet,
-            task="Check if an ERC-8183 author endorsed a proposal on a forum",
-            criteria="Verdict must be ACCEPT or REJECT. Reasoning must be one sentence.",
+            task="Check if an ERC-8183 author endorsed a proposal",
+            criteria="Output must be exactly ACCEPT or REJECT.",
         )
 
-        try:
-            s = str(result_str).strip()
-            s = s.replace("```json", "").replace("```", "").strip()
-            start = s.find("{")
-            end = s.rfind("}") + 1
-            if start >= 0 and end > start:
-                s = s[start:end]
-            parsed = json.loads(s)
-            v = str(parsed.get("verdict", "REJECT")).strip().upper()
-            r = str(parsed.get("reasoning", "")).strip()
-        except:
-            v = "REJECT"
-            r = "Could not parse verification result"
+        v = str(result_str).strip().upper()
+        if "ACCEPT" in v:
+            self.verdict = "ACCEPT"
+        else:
+            self.verdict = "REJECT"
 
-        if v not in ("ACCEPT", "REJECT"):
-            v = "REJECT"
+        self.verdict_reason = "Forum endorsement check"
 
-        self.verdict = v
-        self.verdict_reason = r[:300]
-
-        verdict_uint8 = 1 if v == "ACCEPT" else 2
+        verdict_uint8 = 1 if self.verdict == "ACCEPT" else 2
         reason_hash = genvm_eth.keccak256(self.verdict_reason.encode("utf-8"))
 
         enc = genvm_eth.MethodEncoder("", [u256, u8, u8, bytes32, str], bool)

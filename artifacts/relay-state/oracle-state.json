@@ -89,5 +89,18 @@
       "finalized": false
     },
     "timestamp": 1773210638
+  },
+  "13": {
+    "proposalUrl": "https://raw.githubusercontent.com/acastellana/erc8183-bounty/main/README.md",
+    "proposalTitle": "E2E v6",
+    "signal1": {
+      "txHash": "0xb0c05ca641c7abe756be82d6e9244b70656f8ee70f9d5114d7501d1abbd0cc99",
+      "finalized": false
+    },
+    "signal2": {
+      "txHash": "0x0c80eb08f76b7fc5bcbeac3d2b9e5a778820736a16528021880072008d0ecd93",
+      "finalized": true
+    },
+    "timestamp": 1773219213
   }
 }
