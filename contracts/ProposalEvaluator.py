@@ -1,9 +1,13 @@
 # v0.7.0
 # { "Depends": "py-genlayer:latest" }
-"""ProposalEvaluator — Ultra-minimal GenLayer AI Jury.
+"""ProposalEvaluator — GenLayer AI Jury for ERC-8183 Bounty.
 
-Returns just verdict + one-sentence reason as "VERDICT: reason" string.
-No JSON parsing needed — co-validators just check the verdict word.
+Uses custom leader/validator pattern (gl.vm.run_nondet):
+- Leader fetches proposal, evaluates with LLM, returns verdict
+- Validator independently fetches + evaluates, compares verdict with leader
+- Both agree on ACCEPT/REJECT → consensus passes
+
+Recommended pattern per GenLayer team (Rally/MergeProof).
 """
 
 from genlayer import *
@@ -42,41 +46,45 @@ class ProposalEvaluator(gl.Contract):
 
         url = proposal_url
 
-        def nondet():
+        def leader_fn():
             resp = gl.nondet.web.get(url)
             if not resp or resp.status != 200 or not resp.body:
-                return "REJECT: Could not fetch proposal"
+                raise gl.vm.UserError("[EXTERNAL] Could not fetch proposal")
 
             content = resp.body.decode("utf-8", errors="replace")[:8000]
 
             prompt = (
-                "Does this document propose a concrete extension to ERC-8183 "
-                "with design analysis, architecture, graduated verdicts, "
-                "example flow, and compatibility via hooks?\n\n"
-                "Reply with exactly one word: ACCEPT or REJECT\n\n"
+                "Does this document propose an extension to ERC-8183 with: "
+                "(a) a design analysis, (b) architecture, (c) graduated verdicts, "
+                "(d) example flow, (e) compatibility via hooks? "
+                'Reply ONLY with JSON: {"verdict":"ACCEPT" or "REJECT","reasoning":"one sentence"}\n\n'
                 + content
             )
 
             raw = gl.nondet.exec_prompt(prompt)
-            s = str(raw).strip().upper()
-            # Extract just the verdict word
-            if "ACCEPT" in s:
-                return "ACCEPT"
-            return "REJECT"
+            s = str(raw).strip()
+            s = s.replace("```json", "").replace("```", "").strip()
+            start = s.find("{")
+            end = s.rfind("}") + 1
+            if start >= 0 and end > start:
+                s = s[start:end]
+            parsed = json.loads(s)
+            verdict = str(parsed.get("verdict", "REJECT")).strip().upper()
+            reasoning = str(parsed.get("reasoning", "")).strip()[:300]
+            if verdict not in ("ACCEPT", "REJECT"):
+                verdict = "REJECT"
+            return {"verdict": verdict, "reasoning": reasoning}
 
-        result_str = gl.eq_principle.prompt_non_comparative(
-            nondet,
-            task="Decide if a document is a valid ERC-8183 extension proposal",
-            criteria="Output must be exactly ACCEPT or REJECT.",
-        )
+        def validator_fn(leaders_res: gl.vm.Result) -> bool:
+            if not isinstance(leaders_res, gl.vm.Return):
+                return False
+            validator_result = leader_fn()
+            return validator_result["verdict"] == leaders_res.calldata["verdict"]
 
-        v = str(result_str).strip().upper()
-        if "ACCEPT" in v:
-            self.verdict = "ACCEPT"
-        else:
-            self.verdict = "REJECT"
+        result = gl.vm.run_nondet(leader_fn, validator_fn)
 
-        self.verdict_reason = "AI jury evaluation"
+        self.verdict = result["verdict"]
+        self.verdict_reason = result["reasoning"]
 
         verdict_uint8 = 1 if self.verdict == "ACCEPT" else 2
         reason_hash = genvm_eth.keccak256(self.verdict_reason.encode("utf-8"))
