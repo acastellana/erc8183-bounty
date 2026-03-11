@@ -125,6 +125,60 @@
   </div>
 </div>
 
+<!-- ═══ PIPELINE STATUS ═══ -->
+<section id="status" style="border-top:none;padding-top:48px;padding-bottom:48px">
+  <div class="container">
+    <span class="label">Pipeline status</span>
+    <h2>End-to-end verified ✓</h2>
+    <p style="color:var(--muted);max-width:640px;margin-bottom:28px">
+      The full evaluation pipeline has been tested and verified on-chain. GenLayer AI jury
+      reaches consensus, verdicts bridge back to Base Sepolia, and the evaluator contract
+      delivers the outcome to the job.
+    </p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px">
+      <div style="background:var(--green-l);border:1px solid var(--green);border-radius:var(--r);padding:20px">
+        <div style="font-family:'DM Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--green);margin-bottom:8px">Signal 1 · AI Jury</div>
+        <div style="font-size:24px;font-weight:700;color:var(--green)">ACCEPTED ✓</div>
+        <div style="font-size:14px;color:var(--muted);margin-top:6px">5 LLM validators reached consensus in ~180s</div>
+        <div style="margin-top:8px"><a href="https://sepolia.basescan.org/tx/0x98915e0e15e1b7cdff0c66d3d62010736d29f4d63a8e0f7fa5a2e279b589039f" target="_blank" style="font-family:'DM Mono',monospace;font-size:12px">Verdict tx →</a></div>
+      </div>
+      <div style="background:var(--amber-l);border:1px solid var(--amber);border-radius:var(--r);padding:20px">
+        <div style="font-family:'DM Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--amber);margin-bottom:8px">Signal 2 · Endorsement</div>
+        <div style="font-size:24px;font-weight:700;color:var(--amber)">REJECT ✗</div>
+        <div style="font-size:14px;color:var(--muted);margin-top:6px">No author endorsement found yet (expected)</div>
+        <div style="margin-top:8px"><a href="https://sepolia.basescan.org/tx/0xb2bdab72d1652efab8884c6eab5eaea7f35ec63a645f4697fe656d24fc178be1" target="_blank" style="font-family:'DM Mono',monospace;font-size:12px">Verdict tx →</a></div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+      <div style="text-align:center;padding:16px;background:var(--card);border:1px solid var(--border);border-radius:var(--r)">
+        <div style="font-size:24px;margin-bottom:4px">📝</div>
+        <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--green);font-weight:600">DEPLOYED</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:4px">Base contracts</div>
+      </div>
+      <div style="text-align:center;padding:16px;background:var(--card);border:1px solid var(--border);border-radius:var(--r)">
+        <div style="font-size:24px;margin-bottom:4px">🧠</div>
+        <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--green);font-weight:600">CONSENSUS</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:4px">GenLayer oracles</div>
+      </div>
+      <div style="text-align:center;padding:16px;background:var(--card);border:1px solid var(--border);border-radius:var(--r)">
+        <div style="font-size:24px;margin-bottom:4px">🌉</div>
+        <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--green);font-weight:600">BRIDGED</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:4px">LayerZero relay</div>
+      </div>
+      <div style="text-align:center;padding:16px;background:var(--card);border:1px solid var(--border);border-radius:var(--r)">
+        <div style="font-size:24px;margin-bottom:4px">⚖️</div>
+        <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--green);font-weight:600">DELIVERED</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:4px">Verdict on-chain</div>
+      </div>
+    </div>
+    <p style="font-size:14px;color:var(--muted);margin-top:16px;text-align:center">
+      GenLayer contracts: <code>ProposalEvaluator v0.8.0</code> + <code>EndorsementVerifier v0.7.0</code> ·
+      Pattern: <code>gl.vm.run_nondet</code> (custom leader/validator) ·
+      11/11 direct-mode tests passing
+    </p>
+  </div>
+</section>
+
 <div class="container">
   <div class="notice notice-amber">
     <div class="icon">🐕</div>
